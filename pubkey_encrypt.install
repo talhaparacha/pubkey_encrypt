@@ -1,0 +1,41 @@
+<?php
+
+/**
+ * Implements hook_install().
+ */
+function pubkey_encrypt_install() {
+  // Create field storage for the additional base fields.
+  $entity_manager = \Drupal::entityManager();
+  $definition = $entity_manager->getFieldStorageDefinitions('user')['pkey_protected'];
+  $entity_manager->onFieldStorageDefinitionCreate($definition);
+
+  $definition = $entity_manager->getFieldStorageDefinitions('user')['pubkey'];
+  $entity_manager->onFieldStorageDefinitionCreate($definition);
+
+  $definition = $entity_manager->getFieldStorageDefinitions('user')['privkey'];
+  $entity_manager->onFieldStorageDefinitionCreate($definition);
+
+  //Clear definitions cache.
+  \Drupal::entityManager()->clearCachedDefinitions();
+  \Drupal::service('entity.definition_update_manager')->applyUpdates();
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function pubkey_encrypt_uninstall() {
+  // Remove field storage for the additional base fields.
+  $entity_manager = \Drupal::entityManager();
+  $definition = $entity_manager->getLastInstalledFieldStorageDefinitions('user')['pkey_protected'];
+  $entity_manager->onFieldStorageDefinitionDelete($definition);
+
+  $definition = $entity_manager->getLastInstalledFieldStorageDefinitions('user')['pubkey'];
+  $entity_manager->onFieldStorageDefinitionDelete($definition);
+
+  $definition = $entity_manager->getLastInstalledFieldStorageDefinitions('user')['privkey'];
+  $entity_manager->onFieldStorageDefinitionDelete($definition);
+
+  //Clear definitions cache.
+  \Drupal::entityManager()->clearCachedDefinitions();
+  \Drupal::service('entity.definition_update_manager')->applyUpdates();
+}
