@@ -18,6 +18,10 @@ function pubkey_encrypt_install() {
   //Clear definitions cache.
   \Drupal::entityManager()->clearCachedDefinitions();
   \Drupal::service('entity.definition_update_manager')->applyUpdates();
+
+  //Initialize all keys.
+  $KeysManager = new \Drupal\pubkey_encrypt\KeysManager();
+  $KeysManager->initializeAllUserKeys();
 }
 
 /**
