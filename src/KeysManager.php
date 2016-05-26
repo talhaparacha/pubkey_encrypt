@@ -35,9 +35,9 @@ class KeysManager
 
     //Set Public/Private keys.
     $user
-      ->set('pubkey',$publicKey)
-      ->set('privkey',$privateKey)
-      ->set('pkey_protected',0)
+      ->set('field_public_key',$publicKey)
+      ->set('field_private_key',$privateKey)
+      ->set('field_private_key_protected',0)
       ->save();
   }
 
