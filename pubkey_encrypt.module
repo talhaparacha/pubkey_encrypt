@@ -34,12 +34,13 @@ function custom_login_submit($form, \Drupal\Core\Form\FormStateInterface &$form_
  * Implements hook_user_login().
  */
 function pubkey_encrypt_user_login(\Drupal\user\UserInterface $account) {
+  // A user just logged in.
   $username = $account->get('name')->get(0);
   $username = $username->getValue();
   $username = $username['value'];
 
-  // These values would be present for a user who just logged in, due to our
-  // custom_login_submit
+  // These values would be present for the user who just logged in, due to our
+  // custom_login_submit.
   $tempstore = \Drupal::service('user.shared_tempstore')->get('pubkey_encrypt');
   $password = $tempstore->get($username);
 
@@ -65,7 +66,6 @@ function custom_user_form_submit($form, \Drupal\Core\Form\FormStateInterface &$f
     $KeysManager = \Drupal::service('pubkey_encrypt.keys_manager');
     $KeysManager->userCredentialsChanged($userId, $currentPass, $pass);
   }
-
 }
 
 /**
@@ -76,4 +76,3 @@ function pubkey_encrypt_user_insert(\Drupal\Core\Entity\EntityInterface $entity)
   $KeysManager = \Drupal::service('pubkey_encrypt.keys_manager');
   $KeysManager->initializeUserKeys($entity);
 }
-
