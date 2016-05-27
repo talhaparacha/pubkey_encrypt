@@ -3,6 +3,9 @@ status: true
 dependencies:
   module:
     - user
+  enforced:
+    module:
+      - pubkey_encrypt
 id: user.field_private_key
 field_name: field_private_key
 entity_type: user

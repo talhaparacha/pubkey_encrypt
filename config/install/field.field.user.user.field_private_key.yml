@@ -5,6 +5,9 @@ dependencies:
     - field.storage.user.field_private_key
   module:
     - user
+  enforced:
+    module:
+      - pubkey_encrypt
 id: user.user.field_private_key
 field_name: field_private_key
 entity_type: user
