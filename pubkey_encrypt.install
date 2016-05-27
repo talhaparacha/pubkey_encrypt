@@ -10,11 +10,11 @@
  */
 function pubkey_encrypt_requirements($phase) {
   $requirements = array();
-  //Check for requirements during install
-  if($phase == 'install') {
-    //Check if openssl is enabled
+  // Check for requirements during install.
+  if ($phase == 'install') {
+    // Check if openssl is enabled.
     if (!extension_loaded('openssl')) {
-    $requirements['pubkey_encrypt'] = array(
+      $requirements['pubkey_encrypt'] = array(
         'title' => t('Pubkey Encrypt'),
         'description' => t('Pubkey Encrypt requires OpenSSL installed on the server.'),
         'severity' => REQUIREMENT_ERROR,
@@ -22,7 +22,7 @@ function pubkey_encrypt_requirements($phase) {
     }
   }
   elseif ($phase == 'runtime') {
-    //Check if openssl is enabled
+    // Check if openssl is enabled.
     if (!extension_loaded('openssl')) {
       $requirements['pubkey_encrypt'] = array(
         'title' => t('Pubkey Encrypt'),
@@ -40,8 +40,8 @@ function pubkey_encrypt_requirements($phase) {
  */
 function pubkey_encrypt_install() {
   // Initialize all keys.
-  $KeysManager = \Drupal::service('pubkey_encrypt.keys_manager');;
-  $KeysManager->initializeAllUserKeys();
+  $keysManager = \Drupal::service('pubkey_encrypt.keys_manager');;
+  $keysManager->initializeAllUserKeys();
 
   // Rebuild user entity form display for new fields.
   $storage = \Drupal::entityTypeManager()->getStorage('entity_form_display');

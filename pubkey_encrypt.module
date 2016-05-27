@@ -17,7 +17,7 @@ function pubkey_encrypt_form_alter(&$form, $form_state, $form_id) {
 }
 
 /**
- * Custom submit handler for login form
+ * Custom submit handler for login form.
  */
 function custom_login_submit($form, \Drupal\Core\Form\FormStateInterface &$form_state) {
   // Fetch inputted username and password.
@@ -48,12 +48,12 @@ function pubkey_encrypt_user_login(\Drupal\user\UserInterface $account) {
   $tempstore->delete($username);
 
   // Tell the keys manager service that the user just logged in.
-  $KeysManager = \Drupal::service('pubkey_encrypt.keys_manager');
-  $KeysManager->userLoggedIn($account, $password);
+  $keysManager = \Drupal::service('pubkey_encrypt.keys_manager');
+  $keysManager->userLoggedIn($account, $password);
 }
 
 /**
- * Custom submit handler for user form
+ * Custom submit handler for user form.
  */
 function custom_user_form_submit($form, \Drupal\Core\Form\FormStateInterface &$form_state) {
   $currentPass = $form_state->getValue('current_pass');
@@ -61,18 +61,18 @@ function custom_user_form_submit($form, \Drupal\Core\Form\FormStateInterface &$f
   $userId = $form_state->getValue('uid');
 
   // Check if a user has requested to change password.
-  if($currentPass != '' && $pass != '' && $currentPass != $pass){
+  if ($currentPass != '' && $pass != '' && $currentPass != $pass) {
     // Initialize keys for the newly registered user.
-    $KeysManager = \Drupal::service('pubkey_encrypt.keys_manager');
-    $KeysManager->userCredentialsChanged($userId, $currentPass, $pass);
+    $keysManager = \Drupal::service('pubkey_encrypt.keys_manager');
+    $keysManager->userCredentialsChanged($userId, $currentPass, $pass);
   }
 }
 
 /**
  * Implements hook_ENTITY_TYPE_insert().
  */
-function pubkey_encrypt_user_insert(\Drupal\Core\Entity\EntityInterface $entity){
+function pubkey_encrypt_user_insert(\Drupal\Core\Entity\EntityInterface $entity) {
   // Initialize keys for the newly registered user.
-  $KeysManager = \Drupal::service('pubkey_encrypt.keys_manager');
-  $KeysManager->initializeUserKeys($entity);
+  $keysManager = \Drupal::service('pubkey_encrypt.keys_manager');
+  $keysManager->initializeUserKeys($entity);
 }

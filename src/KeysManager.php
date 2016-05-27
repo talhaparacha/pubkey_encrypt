@@ -18,6 +18,9 @@ class KeysManager {
   protected $entityTypeManager;
   protected $tempStore;
 
+  /*
+   * Constructor with dependencies injected to it.
+   */
   public function __construct(EntityTypeManagerInterface $entityTypeManager, PrivateTempStoreFactory $tempStoreFactory) {
     $this->entityTypeManager = $entityTypeManager;
     $this->tempStore = $tempStoreFactory->get('pubkey_encrypt');
@@ -93,8 +96,8 @@ class KeysManager {
   }
 
   /*
-  * Fetch the private key of a user in its original form
-  */
+   * Fetch the private key of a user in its original form.
+   */
   public function getOriginalPrivateKey(UserInterface $user, $credentials) {
     // Get stored private key.
     $privateKey = $user->get('field_private_key')
@@ -108,7 +111,7 @@ class KeysManager {
       ->getValue();
     $isProtected = $isProtected['value'];
 
-    if($isProtected) {
+    if ($isProtected) {
       // Decrypt protected private key using user credentials and return.
       // We don't really need the IV to be random here, hence all zeros.
       $originalPrivateKey  = openssl_decrypt($privateKey, 'AES-128-CBC', $credentials, 0, '0000000000000000');
