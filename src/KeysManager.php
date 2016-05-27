@@ -160,4 +160,5 @@ class KeysManager {
     // Store private key in tempstore.
     $this->tempStore->set('private_key', $originalPrivateKey);
   }
+
 }
