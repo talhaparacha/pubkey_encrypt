@@ -8,6 +8,7 @@
 namespace Drupal\pubkey_encrypt;
 
 use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\user\PrivateTempStoreFactory;
 use Drupal\user\UserInterface;
 
 /**
@@ -16,10 +17,12 @@ use Drupal\user\UserInterface;
 class KeysManager
 {
   protected $entityTypeManager;
+  protected $tempStore;
 
-  public function __construct(EntityTypeManagerInterface $entityTypeManager)
+  public function __construct(EntityTypeManagerInterface $entityTypeManager, PrivateTempStoreFactory $tempStoreFactory)
   {
     $this->entityTypeManager = $entityTypeManager;
+    $this->tempStore = $tempStoreFactory->get('pubkey_encrypt');
   }
 
   /*
@@ -31,7 +34,6 @@ class KeysManager
     foreach($users as $user){
       $this->initializeUserKeys($user);
     }
-
   }
 
   /*
@@ -41,7 +43,7 @@ class KeysManager
     $privateKey = 'blah';
     $publicKey = 'hello';
 
-    //Set Public/Private keys.
+    // Set Public/Private keys.
     $user
       ->set('field_public_key',$publicKey)
       ->set('field_private_key',$privateKey)
@@ -50,9 +52,36 @@ class KeysManager
   }
 
   /*
-   * Protect user keys with his credentials.
+   * Protect a user keys with his credentials.
    */
-  public function protectUserKeys(){
+  public function protectUserKeys(UserInterface $user, $credentials){
 
+  }
+
+  /*
+   * Handle a change in user credentials.
+   */
+  public function userCredentialsChanged($userId, $currentCredentials, $newCredentials){
+    $user = $this->entityTypeManager->getStorage('user')->load($userId);
+    $user = $user;
+  }
+
+  /*
+   * Fetch and temporarily store user's private key upon login.
+   */
+  public function userLoggedIn(UserInterface $user, $credentials){
+    $isProtected = $user->get('field_private_key_protected')->get(0)->getValue();
+    $isProtected = $isProtected['value'];
+
+    $privateKey = $user->get('field_private_key')->get(0)->getValue();
+    $privateKey = $privateKey['value'];
+
+    // If it was the first-time login of a user, protect his keys first.
+    if(!$isProtected){
+      $this->protectUserKeys($user, $credentials);
+    }
+
+    // Store private key in tempstore.
+    $this->tempStore->set('private_key',$privateKey);
   }
 }

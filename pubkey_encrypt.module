@@ -1,0 +1,79 @@
+<?php
+
+/**
+ * Implements hook_form_alter().
+ */
+function pubkey_encrypt_form_alter(&$form, $form_state, $form_id) {
+  switch ($form_id) {
+    case 'user_login_form':
+      // Try to have this form pass through our custom handler first.
+      array_unshift($form['#submit'], 'custom_login_submit');
+      break;
+
+    case 'user_form':
+      // Have this form pass through our custom handler too.
+      $form['actions']['submit']['#submit'][] = 'custom_user_form_submit';
+  }
+}
+
+/**
+ * Custom submit handler for login form
+ */
+function custom_login_submit($form, \Drupal\Core\Form\FormStateInterface &$form_state) {
+  // Fetch inputted username and password.
+  $username = $form_state->getValue('name');
+  $password = $form_state->getValue('pass');
+
+  // Temporarily store the plaintext password to be used for hook_user_login().
+  // We cannot put this in private_tempstore as no user has been logged in yet.
+  $tempstore = \Drupal::service('user.shared_tempstore')->get('pubkey_encrypt');
+  $tempstore->set($username, $password);
+}
+
+/**
+ * Implements hook_user_login().
+ */
+function pubkey_encrypt_user_login(\Drupal\user\UserInterface $account) {
+  $username = $account->get('name')->get(0);
+  $username = $username->getValue();
+  $username = $username['value'];
+
+  // These values would be present for a user who just logged in, due to our
+  // custom_login_submit
+  $tempstore = \Drupal::service('user.shared_tempstore')->get('pubkey_encrypt');
+  $password = $tempstore->get($username);
+
+  // Unset the temporarily stored plaintext password from the tempstore.
+  $tempstore->delete($username);
+
+  // Tell the keys manager service that the user just logged in.
+  $KeysManager = \Drupal::service('pubkey_encrypt.keys_manager');
+  $KeysManager->userLoggedIn($account, $password);
+}
+
+/**
+ * Custom submit handler for user form
+ */
+function custom_user_form_submit($form, \Drupal\Core\Form\FormStateInterface &$form_state) {
+  $currentPass = $form_state->getValue('current_pass');
+  $pass = $form_state->getValue('pass');
+  $userId = $form_state->getValue('uid');
+
+  // Check if a user has requested to change password.
+  if($currentPass != '' && $pass != '' && $currentPass != $pass){
+    // Initialize keys for the newly registered user.
+    $KeysManager = \Drupal::service('pubkey_encrypt.keys_manager');
+    $KeysManager->userCredentialsChanged($userId, $currentPass, $pass);
+  }
+
+}
+
+/**
+ * Implements hook_ENTITY_TYPE_insert().
+ */
+function pubkey_encrypt_user_insert(\Drupal\Core\Entity\EntityInterface $entity){
+  // Initialize keys for the newly registered user.
+  $KeysManager = \Drupal::service('pubkey_encrypt.keys_manager');
+  $KeysManager->initializeUserKeys($entity);
+}
+
