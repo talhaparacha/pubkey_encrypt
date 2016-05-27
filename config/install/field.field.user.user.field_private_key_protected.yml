@@ -9,7 +9,7 @@ id: user.user.field_private_key_protected
 field_name: field_private_key_protected
 entity_type: user
 bundle: user
-label: privatekey_protected
+label: private_key_protected
 description: "Tells whether the Private key of a user has been protected with his credentials or not.\r\n"
 required: false
 translatable: false

@@ -7,6 +7,7 @@
 
 namespace Drupal\pubkey_encrypt;
 
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\user\UserInterface;
 
 /**
@@ -14,11 +15,18 @@ use Drupal\user\UserInterface;
  */
 class KeysManager
 {
+  protected $entityTypeManager;
+
+  public function __construct(EntityTypeManagerInterface $entityTypeManager)
+  {
+    $this->entityTypeManager = $entityTypeManager;
+  }
+
   /*
    * Initialize all users' keys.
    */
   public function initializeAllUserKeys(){
-    $users = \Drupal::entityTypeManager()->getStorage('user')->loadMultiple();
+    $users = $this->entityTypeManager->getStorage('user')->loadMultiple();
 
     foreach($users as $user){
       $this->initializeUserKeys($user);

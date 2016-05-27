@@ -5,6 +5,6 @@
  */
 function pubkey_encrypt_install() {
   //Initialize all keys.
-  $KeysManager = new \Drupal\pubkey_encrypt\KeysManager();
+  $KeysManager = \Drupal::service('pubkey_encrypt.keys_manager');;
   $KeysManager->initializeAllUserKeys();
 }

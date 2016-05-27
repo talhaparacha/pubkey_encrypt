@@ -1,0 +1,4 @@
+services:
+  pubkey_encrypt.keys_manager:
+    class: Drupal\pubkey_encrypt\KeysManager
+    arguments: ['@entity_type.manager']
