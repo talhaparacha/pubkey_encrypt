@@ -35,9 +35,7 @@ function pubkey_encrypt_login_submit($form, \Drupal\Core\Form\FormStateInterface
  */
 function pubkey_encrypt_user_login(\Drupal\user\UserInterface $account) {
   // A user just logged in.
-  $username = $account->get('name')->get(0);
-  $username = $username->getValue();
-  $username = $username['value'];
+  $username = $account->get('name')->getString();
 
   // These values would be present for the user who just logged in, due to our
   // custom_login_submit.

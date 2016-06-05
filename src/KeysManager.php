@@ -43,7 +43,6 @@ class KeysManager {
   public function initializeUserKeys(UserInterface $user) {
     // Generate a Public/Private key pair.
     $config = array(
-      "config" => "C:/xampp/apache/bin/openssl.cnf",
       "digest_alg" => "sha512",
       "private_key_bits" => 4096,
       "private_key_type" => OPENSSL_KEYTYPE_RSA,
@@ -71,17 +70,13 @@ class KeysManager {
    * Protect a user keys with his credentials.
    */
   public function protectUserKeys(UserInterface $user, $credentials) {
-    $isProtected = $user->get('field_private_key_protected')
-      ->get(0)
-      ->getValue();
-    $isProtected = $isProtected['value'];
+    // Get stored keys status.
+    $isProtected = $user->get('field_private_key_protected')->getString();
+
     // Ensure that the keys have not already been protected.
     if (!$isProtected) {
       // Get original private key.
-      $privateKey = $user->get('field_private_key')
-        ->get(0)
-        ->getValue();
-      $privateKey = $privateKey['value'];
+      $privateKey = $user->get('field_private_key')->getString();
 
       // Protect the original private key.
       // Since we're encrypting keys which are themselves pretty random, we
@@ -101,16 +96,10 @@ class KeysManager {
    */
   public function getOriginalPrivateKey(UserInterface $user, $credentials) {
     // Get stored private key.
-    $privateKey = $user->get('field_private_key')
-      ->get(0)
-      ->getValue();
-    $privateKey = $privateKey['value'];
+    $privateKey = $user->get('field_private_key')->getString();
 
     // Get stored keys status.
-    $isProtected = $user->get('field_private_key_protected')
-      ->get(0)
-      ->getValue();
-    $isProtected = $isProtected['value'];
+    $isProtected = $user->get('field_private_key_protected')->getString();
 
     if ($isProtected) {
       // Decrypt protected private key using user credentials and return.
@@ -145,10 +134,7 @@ class KeysManager {
    * Fetch and temporarily store user's private key upon login.
    */
   public function userLoggedIn(UserInterface $user, $credentials) {
-    $isProtected = $user->get('field_private_key_protected')
-      ->get(0)
-      ->getValue();
-    $isProtected = $isProtected['value'];
+    $isProtected = $user->get('field_private_key_protected')->getString();
 
     // If it was the first-time login of a user, protect his keys first.
     if (!$isProtected) {
