@@ -84,7 +84,8 @@ class KeysManager {
       $privateKey = $privateKey['value'];
 
       // Protect the original private key.
-      // We don't really need the IV to be random here, hence all zeros.
+      // Since we're encrypting keys which are themselves pretty random, we
+      // don't really need the IV to be random here too. Hence using all zeros.
       $protectedPrivateKey = openssl_encrypt($privateKey, 'AES-128-CBC', $credentials, 0, '0000000000000000');
 
       // Set new values for the fields.
@@ -113,7 +114,6 @@ class KeysManager {
 
     if ($isProtected) {
       // Decrypt protected private key using user credentials and return.
-      // We don't really need the IV to be random here, hence all zeros.
       $originalPrivateKey  = openssl_decrypt($privateKey, 'AES-128-CBC', $credentials, 0, '0000000000000000');
       return $originalPrivateKey;
     }

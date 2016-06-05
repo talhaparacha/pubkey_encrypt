@@ -7,19 +7,19 @@ function pubkey_encrypt_form_alter(&$form, $form_state, $form_id) {
   switch ($form_id) {
     case 'user_login_form':
       // Try to have this form pass through our custom handler first.
-      array_unshift($form['#submit'], 'custom_login_submit');
+      array_unshift($form['#submit'], 'pubkey_encrypt_login_submit');
       break;
 
     case 'user_form':
       // Have this form pass through our custom handler too.
-      $form['actions']['submit']['#submit'][] = 'custom_user_form_submit';
+      $form['actions']['submit']['#submit'][] = 'pubkey_encrypt_form_submit';
   }
 }
 
 /**
  * Custom submit handler for login form.
  */
-function custom_login_submit($form, \Drupal\Core\Form\FormStateInterface &$form_state) {
+function pubkey_encrypt_login_submit($form, \Drupal\Core\Form\FormStateInterface &$form_state) {
   // Fetch inputted username and password.
   $username = $form_state->getValue('name');
   $password = $form_state->getValue('pass');
@@ -55,7 +55,7 @@ function pubkey_encrypt_user_login(\Drupal\user\UserInterface $account) {
 /**
  * Custom submit handler for user form.
  */
-function custom_user_form_submit($form, \Drupal\Core\Form\FormStateInterface &$form_state) {
+function pubkey_encrypt_form_submit($form, \Drupal\Core\Form\FormStateInterface &$form_state) {
   $currentPass = $form_state->getValue('current_pass');
   $pass = $form_state->getValue('pass');
   $userId = $form_state->getValue('uid');

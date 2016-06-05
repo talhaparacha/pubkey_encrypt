@@ -1,2 +1,2 @@
 # Pubkey Encrypt
-Drupal 8 Module for adding Password-based Public Key Encryption support. The encryption mechanism is based on ownCloud's Data Encryption Model.
+Drupal 8 Module for adding Credentials-based Public Key Encryption support into the Field Encrypt module. The encryption mechanism is based on ownCloud's Data Encryption Model.

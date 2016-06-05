@@ -40,7 +40,7 @@ function pubkey_encrypt_requirements($phase) {
  */
 function pubkey_encrypt_install() {
   // Initialize all keys.
-  $keysManager = \Drupal::service('pubkey_encrypt.keys_manager');;
+  $keysManager = \Drupal::service('pubkey_encrypt.keys_manager');
   $keysManager->initializeAllUserKeys();
 
   // Rebuild user entity form display for new fields.
