@@ -2,7 +2,7 @@
 
 /**
  * @file
- * Contains \Drupal\pubkey_encrypt\KeysManager.
+ * Contains \Drupal\pubkey_encrypt\PubkeyEncryptManager.
  */
 
 namespace Drupal\pubkey_encrypt;
@@ -14,7 +14,7 @@ use Drupal\user\UserInterface;
 /**
  * Handles users' Public/Private key pairs.
  */
-class KeysManager {
+class PubkeyEncryptManager {
   protected $entityTypeManager;
   protected $tempStore;
 
