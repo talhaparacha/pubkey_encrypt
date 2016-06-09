@@ -46,23 +46,23 @@ function pubkey_encrypt_user_login(\Drupal\user\UserInterface $account) {
   $tempstore->delete($username);
 
   // Tell the keys manager service that the user just logged in.
-  $pubkeyEncryptManager = \Drupal::service('pubkey_encrypt.pubkey_encrypt_manager');
-  $pubkeyEncryptManager->userLoggedIn($account, $password);
+  $pubkey_encrypt_manager = \Drupal::service('pubkey_encrypt.pubkey_encrypt_manager');
+  $pubkey_encrypt_manager->userLoggedIn($account, $password);
 }
 
 /**
  * Custom submit handler for user form.
  */
 function pubkey_encrypt_form_submit($form, \Drupal\Core\Form\FormStateInterface &$form_state) {
-  $currentPass = $form_state->getValue('current_pass');
+  $current_pass = $form_state->getValue('current_pass');
   $pass = $form_state->getValue('pass');
-  $userId = $form_state->getValue('uid');
+  $user_id = $form_state->getValue('uid');
 
   // Check if a user has requested to change password.
-  if ($currentPass != '' && $pass != '' && $currentPass != $pass) {
+  if ($current_pass != '' && $pass != '' && $current_pass != $pass) {
     // Initialize keys for the newly registered user.
-    $pubkeyEncryptManager = \Drupal::service('pubkey_encrypt.pubkey_encrypt_manager');
-    $pubkeyEncryptManager->userCredentialsChanged($userId, $currentPass, $pass);
+    $pubkey_encrypt_manager = \Drupal::service('pubkey_encrypt.pubkey_encrypt_manager');
+    $pubkey_encrypt_manager->userCredentialsChanged($user_id, $current_pass, $pass);
   }
 }
 
@@ -71,6 +71,6 @@ function pubkey_encrypt_form_submit($form, \Drupal\Core\Form\FormStateInterface 
  */
 function pubkey_encrypt_user_insert(\Drupal\Core\Entity\EntityInterface $entity) {
   // Initialize keys for the newly registered user.
-  $pubkeyEncryptManager = \Drupal::service('pubkey_encrypt.pubkey_encrypt_manager');
-  $pubkeyEncryptManager->initializeUserKeys($entity);
+  $pubkey_encrypt_manager = \Drupal::service('pubkey_encrypt.pubkey_encrypt_manager');
+  $pubkey_encrypt_manager->initializeUserKeys($entity);
 }
