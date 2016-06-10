@@ -11,6 +11,7 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\key\Plugin\KeyProviderBase;
 use Drupal\key\Plugin\KeyPluginFormInterface;
 use Drupal\key\Plugin\KeyProviderSettableValueInterface;
+use Drupal\key\Exception\KeyValueNotSetException;
 use Drupal\key\KeyInterface;
 use Drupal\user\Entity\Role;
 use Drupal\Core\Session\AccountInterface;
@@ -25,7 +26,7 @@ use Drupal\Core\Session\AccountInterface;
  *   storage_method = "pubkey_encrypt",
  *   key_value = {
  *     "accepted" = TRUE,
- *     "required" = TRUE
+ *     "required" = FALSE
  *   }
  * )
  */
@@ -102,6 +103,13 @@ class PubkeyEncryptKeyProvider extends KeyProviderBase implements KeyPluginFormI
     $users = \Drupal::service('entity_type.manager')
       ->getStorage('user')
       ->loadByProperties(['roles' => $role]);
+    // Allow root user control over all keys irrespective of his role.
+    // @todiscuss WE COULD GIVE THIS PREVILIGE TO ALL USERS WITH "ADMINISTER_KEYS" PERMISSION.
+    if (!isset($users[1])) {
+      $users[1] = \Drupal::service('entity_type.manager')
+        ->getStorage('user')
+        ->load('1');
+    }
     // Each user will have a Share key.
     foreach ($users as $user) {
       $userId = $user->get('uid')->getString();
@@ -111,7 +119,12 @@ class PubkeyEncryptKeyProvider extends KeyProviderBase implements KeyPluginFormI
     }
 
     // Store the Share keys.
-    $this->configuration['share_keys'] = $shareKeys;
+    if ($this->configuration['share_keys'] = $shareKeys) {
+      return TRUE;
+    }
+    else {
+      throw new KeyValueNotSetException();
+    }
   }
 
   /**

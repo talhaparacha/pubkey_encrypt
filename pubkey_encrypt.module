@@ -74,3 +74,41 @@ function pubkey_encrypt_user_insert(\Drupal\Core\Entity\EntityInterface $entity)
   $pubkey_encrypt_manager = \Drupal::service('pubkey_encrypt.pubkey_encrypt_manager');
   $pubkey_encrypt_manager->initializeUserKeys($entity);
 }
+
+/**
+ * Implements hook_user_role_delete().
+ */
+function pubkey_encrypt_user_role_delete(\Drupal\user\RoleInterface $role) {
+  // Cater for Role deletion.
+  $pubkey_encrypt_manager = \Drupal::service('pubkey_encrypt.pubkey_encrypt_manager');
+  $pubkey_encrypt_manager->deleteRoleKey($role);
+}
+
+/**
+ * Implements hook_user_role_insert().
+ */
+function pubkey_encrypt_user_role_insert(\Drupal\user\RoleInterface $role) {
+  // Cater for Role creation.
+  $pubkey_encrypt_manager = \Drupal::service('pubkey_encrypt.pubkey_encrypt_manager');
+  $pubkey_encrypt_manager->generateRoleKey($role);
+}
+
+/**
+ * Implements hook_user_update().
+ */
+function pubkey_encrypt_user_update(\Drupal\user\UserInterface $account) {
+  $new_roles = $account->getRoles();
+  $previous_roles = $account->original->getRoles();
+
+  if ($new_roles != $previous_roles) {
+    $added_roles = array_diff($new_roles, $previous_roles);
+    $removed_roles = array_diff($previous_roles, $new_roles);
+    $changed_roles = array_merge($added_roles, $removed_roles);
+
+    foreach ($changed_roles as $role) {
+      $pubkey_encrypt_manager = \Drupal::service('pubkey_encrypt.pubkey_encrypt_manager');
+      $pubkey_encrypt_manager
+        ->updateRoleKey(\Drupal\user\Entity\Role::load($role));
+    }
+  }
+}

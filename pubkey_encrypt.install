@@ -60,4 +60,7 @@ function pubkey_encrypt_install() {
     ->removeComponent('field_private_key')
     ->removeComponent('field_private_key_protected')
     ->save();
+
+  // Generate Role keys.
+  $pubkey_encrypt_manager->generateRoleKeys();
 }

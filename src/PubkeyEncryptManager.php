@@ -10,6 +10,8 @@ namespace Drupal\pubkey_encrypt;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\user\PrivateTempStoreFactory;
 use Drupal\user\UserInterface;
+use Drupal\user\Entity\Role;
+use Drupal\Core\Session\AccountInterface;
 
 /**
  * Handles users' Public/Private key pairs.
@@ -145,6 +147,86 @@ class PubkeyEncryptManager {
 
     // Store private key in tempstore.
     $this->tempStore->set('private_key', $originalPrivateKey);
+  }
+
+  /*
+   * Generate a Role key.
+  */
+  public function generateRoleKey(Role $role) {
+    $role_id = $role->id();
+    $role_label = $role->label();
+
+    // Generate a key; at this stage the key hasn't been configured completely.
+    $values = [];
+    $values["id"] = $role_id . "_role_key";
+    $values["label"] = $role_label . " Role key";
+    $values["description"] = $role_label . " Role key used by Pubkey Encrypt";
+    $values["key_type"] = "encryption";
+    $values["key_type_settings"]["key_size"] = "128";
+    $values["key_input"] = "text_field";
+    $values["key_input_settings"]["base64_encoded"] = TRUE;
+    $values["key_provider"] = "pubkey_encrypt";
+    $values["key_provider_settings"]["role"] = $role_id;
+    \Drupal::entityTypeManager()
+      ->getStorage('key')
+      ->create($values)
+      ->save();
+
+    // Fetch the newly generated key from key repository.
+    $new_key = \Drupal::service('key.repository')
+      ->getKey($role_id . "_role_key");
+
+    // Generate a value for the key.
+    $new_key_value = $new_key
+      ->getKeyType()
+      ->generateKeyValue(array("key_size" => "128"));
+
+    // Save the key with new value.
+    // This would cause our Key Provider to save it as per the business logic.
+    $new_key->setKeyValue($new_key_value);
+    $new_key->save(\Drupal::entityTypeManager()->getStorage('key'));
+  }
+
+  /*
+   * Generate Role keys upon module installation.
+   */
+  public function generateRoleKeys() {
+    // Generate a Role key per role.
+    foreach (Role::loadMultiple() as $role) {
+      if ($role->id() != AccountInterface::ANONYMOUS_ROLE && $role->id() != AccountInterface::AUTHENTICATED_ROLE) {
+        $this->generateRoleKey($role);
+      }
+    }
+  }
+
+  /*
+   * Update a Role key.
+   */
+  public function updateRoleKey(Role $role) {
+    // Since only root user has complete control over all keys, so allow for
+    // Role key updates only if the root user is logged in.
+    if (\Drupal::currentUser()->id() == '1') {
+      // Since we don't have a Role key for "authenticated" role.
+      if ($role->id() != AccountInterface::AUTHENTICATED_ROLE) {
+        // Fetch the Role key.
+        $key = \Drupal::service('key.repository')
+          ->getKey($role->id() . "_role_key");
+
+        // Re-save the key with same value.
+        // This would case our Key Provider to cater for the update.
+        $key->setKeyValue($key->getKeyValue());
+        $key->save(\Drupal::entityTypeManager()->getStorage('key'));
+      }
+    }
+  }
+
+  /*
+   * Delete a Role key upon role removal.
+   */
+  public function deleteRoleKey(Role $role) {
+    \Drupal::service('key.repository')
+      ->getKey($role->id() . "_role_key")
+      ->delete();
   }
 
 }
