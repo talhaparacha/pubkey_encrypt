@@ -1,0 +1,63 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the pubkey_encrypt module.
+ */
+
+/**
+ * Implements hook_requirements().
+ */
+function pubkey_encrypt_requirements($phase) {
+  $requirements = array();
+  // Check for requirements during install.
+  if ($phase == 'install') {
+    // Check if openssl is enabled.
+    if (!extension_loaded('openssl')) {
+      $requirements['pubkey_encrypt'] = array(
+        'title' => t('Pubkey Encrypt'),
+        'description' => t('Pubkey Encrypt requires OpenSSL installed on the server.'),
+        'severity' => REQUIREMENT_ERROR,
+      );
+    }
+  }
+  elseif ($phase == 'runtime') {
+    // Check if openssl is enabled.
+    if (!extension_loaded('openssl')) {
+      $requirements['pubkey_encrypt'] = array(
+        'title' => t('Pubkey Encrypt'),
+        'description' => t('Pubkey Encrypt requires OpenSSL installed on the server.'),
+        'severity' => REQUIREMENT_ERROR,
+      );
+    }
+  }
+  return $requirements;
+}
+
+
+/**
+ * Implements hook_install().
+ */
+function pubkey_encrypt_install() {
+  // Initialize all keys.
+  $pubkey_encrypt_manager = \Drupal::service('pubkey_encrypt.pubkey_encrypt_manager');
+  $pubkey_encrypt_manager->initializeAllUserKeys();
+
+  // Rebuild user entity form display for new fields.
+  $storage = \Drupal::entityTypeManager()->getStorage('entity_form_display');
+  $user_form_display = $storage->load('user.user.default');
+  if (!$user_form_display) {
+    $user_form_display = $storage->create([
+      'targetEntityType' => 'user',
+      'bundle' => 'user',
+      'mode' => 'default',
+      'status' => TRUE,
+    ]);
+  }
+  // Hide all fields from UI.
+  $user_form_display
+    ->removeComponent('field_public_key')
+    ->removeComponent('field_private_key')
+    ->removeComponent('field_private_key_protected')
+    ->save();
+}

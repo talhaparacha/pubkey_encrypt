@@ -1,0 +1,4 @@
+services:
+  pubkey_encrypt.pubkey_encrypt_manager:
+    class: Drupal\pubkey_encrypt\PubkeyEncryptManager
+    arguments: ['@entity_type.manager', '@user.private_tempstore']
