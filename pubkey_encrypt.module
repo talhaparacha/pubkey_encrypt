@@ -97,6 +97,7 @@ function pubkey_encrypt_user_role_insert(\Drupal\user\RoleInterface $role) {
  * Implements hook_user_update().
  */
 function pubkey_encrypt_user_update(\Drupal\user\UserInterface $account) {
+  // Check if the user roles have been modified.
   $new_roles = $account->getRoles();
   $previous_roles = $account->original->getRoles();
 
@@ -105,8 +106,9 @@ function pubkey_encrypt_user_update(\Drupal\user\UserInterface $account) {
     $removed_roles = array_diff($previous_roles, $new_roles);
     $changed_roles = array_merge($added_roles, $removed_roles);
 
+    // Update Role keys.
+    $pubkey_encrypt_manager = \Drupal::service('pubkey_encrypt.pubkey_encrypt_manager');
     foreach ($changed_roles as $role) {
-      $pubkey_encrypt_manager = \Drupal::service('pubkey_encrypt.pubkey_encrypt_manager');
       $pubkey_encrypt_manager
         ->updateRoleKey(\Drupal\user\Entity\Role::load($role));
     }
