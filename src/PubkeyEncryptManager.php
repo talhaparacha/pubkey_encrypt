@@ -163,8 +163,7 @@ class PubkeyEncryptManager {
     $values["description"] = $role_label . " Role key used by Pubkey Encrypt";
     $values["key_type"] = "encryption";
     $values["key_type_settings"]["key_size"] = "128";
-    $values["key_input"] = "text_field";
-    $values["key_input_settings"]["base64_encoded"] = TRUE;
+    $values["key_input"] = "none";
     $values["key_provider"] = "pubkey_encrypt";
     $values["key_provider_settings"]["role"] = $role_id;
     \Drupal::entityTypeManager()
