@@ -79,7 +79,7 @@ function pubkey_encrypt_user_insert(\Drupal\Core\Entity\EntityInterface $entity)
  * Implements hook_user_role_delete().
  */
 function pubkey_encrypt_user_role_delete(\Drupal\user\RoleInterface $role) {
-  // Cater for Role deletion.
+  // Delete the Role key upon Role deletion.
   $pubkey_encrypt_manager = \Drupal::service('pubkey_encrypt.pubkey_encrypt_manager');
   $pubkey_encrypt_manager->deleteRoleKey($role);
 }
@@ -88,7 +88,7 @@ function pubkey_encrypt_user_role_delete(\Drupal\user\RoleInterface $role) {
  * Implements hook_user_role_insert().
  */
 function pubkey_encrypt_user_role_insert(\Drupal\user\RoleInterface $role) {
-  // Cater for Role creation.
+  // Create a Role key upon Role creation.
   $pubkey_encrypt_manager = \Drupal::service('pubkey_encrypt.pubkey_encrypt_manager');
   $pubkey_encrypt_manager->generateRoleKey($role);
 }

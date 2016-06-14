@@ -188,9 +188,9 @@ class PubkeyEncryptManager {
   }
 
   /*
-   * Generate Role keys upon module installation.
+   * Initialize Role keys upon module installation.
    */
-  public function generateRoleKeys() {
+  public function initializeRoleKeys() {
     // Generate a Role key per role.
     foreach (Role::loadMultiple() as $role) {
       if ($role->id() != AccountInterface::ANONYMOUS_ROLE && $role->id() != AccountInterface::AUTHENTICATED_ROLE) {
