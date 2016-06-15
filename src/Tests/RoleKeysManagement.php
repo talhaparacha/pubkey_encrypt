@@ -8,6 +8,7 @@
 namespace Drupal\pubkey_encrypt\Tests;
 
 use Drupal\simpletest\WebTestBase;
+use Drupal\user\Entity\Role;
 
 /**
  * Tests the management of Role keys.
@@ -44,11 +45,7 @@ class RoleKeysManagement extends WebTestBase {
     $user2 = $this->drupalCreateUser(array());
 
     // Login with root user.
-    $admin = $this->drupalCreateUser(array(
-      'administer users',
-      'administer permissions',
-    ));
-    $this->drupalLogin($admin);
+    $this->drupalLogin($this->rootUser);
 
     // Add user1 to the newly created role.
     $edit = array();
@@ -59,7 +56,7 @@ class RoleKeysManagement extends WebTestBase {
     $this->drupalLogin($user1);
     $role_key_value = $key_repository
       ->getKey($new_role_id . "_role_key")
-      ->getKeyValue();
+      ->getKeyValue(TRUE);
 
     $this->assertNotEqual('', $role_key_value, "A user is able to access Role key value if he is in the role");
 
@@ -68,14 +65,18 @@ class RoleKeysManagement extends WebTestBase {
     $this->drupalLogin($user2);
     $role_key_value = $key_repository
       ->getKey($new_role_id . "_role_key")
-      ->getKeyValue();
+      ->getKeyValue(TRUE);
 
     $this->assertEqual('', $role_key_value, "A user is not able to access Role key value if he is not in the role");
 
     // Remove the role.
-    //\Drupal::entityTypeManager()->getStorage('user')->delete(array("id" => $new_role_id));
-    //$new_role_key = $key_repository->getKey($new_role_id . "_role_key");
-    //$this->assertNull($new_role_key, "Role key gets deleted upon the deletion of a role");
+    \Drupal::entityTypeManager()
+      ->getStorage('user_role')
+      ->delete(array(Role::load($new_role_id)));
+
+    // Test that the Role key has been deleted.
+    $new_role_key = $key_repository->getKey($new_role_id . "_role_key");
+    $this->assertNull($new_role_key, "Role key gets deleted upon the deletion of a role");
   }
 
 }
