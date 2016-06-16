@@ -97,25 +97,23 @@ class PubkeyEncryptKeyProvider extends KeyProviderBase implements KeyPluginFormI
    * {@inheritdoc}
    */
   public function setKeyValue(KeyInterface $key, $key_value) {
-    // Generate Share keys for all users from the specified role.
     $role = $this->configuration['role'];
     $shareKeys = [];
     $users = \Drupal::service('entity_type.manager')
       ->getStorage('user')
-      ->loadByProperties(['roles' => $role]);
-    // Allow root user control over all keys irrespective of his role.
-    // @todiscuss WE COULD GIVE THIS PREVILIGE TO ALL USERS WITH "ADMINISTER_KEYS" PERMISSION.
-    if (!isset($users[1])) {
-      $users[1] = \Drupal::service('entity_type.manager')
-        ->getStorage('user')
-        ->load('1');
-    }
+      ->loadMultiple();
     // Each user will have a Share key.
     foreach ($users as $user) {
-      $userId = $user->get('uid')->getString();
-      $publicKey = $user->get('field_public_key')->getString();
-      openssl_public_encrypt($key_value, $shareKey, $publicKey);
-      $shareKeys[$userId] = base64_encode($shareKey);
+      // Generate Share keys for all users from the specified role. Also
+      // generate a Share key for any user with "administer_permissions"
+      // permission since he should be given complete complete control over
+      // all keys..
+      if ($user->hasRole($role) || $user->hasPermission('administer permissions')) {
+        $userId = $user->get('uid')->getString();
+        $publicKey = $user->get('field_public_key')->getString();
+        openssl_public_encrypt($key_value, $shareKey, $publicKey);
+        $shareKeys[$userId] = base64_encode($shareKey);
+      }
     }
 
     // Store the Share keys.

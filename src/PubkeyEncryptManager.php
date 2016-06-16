@@ -202,9 +202,9 @@ class PubkeyEncryptManager {
    * Update a Role key.
    */
   public function updateRoleKey(Role $role) {
-    // Since only root user has complete control over all keys, so allow for
-    // Role key updates only if the root user is logged in.
-    if (\Drupal::currentUser()->id() == '1') {
+    // Since only users with "administer permissions" permission have control
+    // over all Role keys, so only they can trigger any Role key update.
+    if (\Drupal::currentUser()->hasPermission("administer permissions")) {
       // Since we don't have a Role key for "authenticated" role.
       if ($role->id() != AccountInterface::AUTHENTICATED_ROLE) {
         // Fetch the Role key.
@@ -212,10 +212,25 @@ class PubkeyEncryptManager {
           ->getKey($role->id() . "_role_key");
 
         // Re-save the key with same value.
-        // This would case our Key Provider to cater for the update.
+        // This would cause our Key Provider to cater for the update.
         $key->setKeyValue($key->getKeyValue());
         $key->save(\Drupal::entityTypeManager()->getStorage('key'));
       }
+    }
+  }
+
+  /*
+   * Update all Role keys.
+   */
+  public function updateAllRoleKeys() {
+    $roles = $this->entityTypeManager->getStorage('user_role')->loadMultiple();
+
+    // Since we don't have a Role key for these two roles.
+    unset($roles[AccountInterface::ANONYMOUS_ROLE]);
+    unset($roles[AccountInterface::AUTHENTICATED_ROLE]);
+
+    foreach ($roles as $role) {
+      $this->updateRoleKey($role);
     }
   }
 

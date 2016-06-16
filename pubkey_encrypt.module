@@ -82,6 +82,13 @@ function pubkey_encrypt_user_role_delete(\Drupal\user\RoleInterface $role) {
   // Delete the Role key upon Role deletion.
   $pubkey_encrypt_manager = \Drupal::service('pubkey_encrypt.pubkey_encrypt_manager');
   $pubkey_encrypt_manager->deleteRoleKey($role);
+
+  // If the role had "administer permissions" permission in it, we need to
+  // update all Role keys. This would cause all users updated with "administer
+  // permissions" permission get complete control over all Role keys.
+  if ($role->hasPermission("administer permissions")) {
+    $pubkey_encrypt_manager->updateAllRoleKeys();
+  }
 }
 
 /**
@@ -109,8 +116,37 @@ function pubkey_encrypt_user_update(\Drupal\user\UserInterface $account) {
     // Update Role keys.
     $pubkey_encrypt_manager = \Drupal::service('pubkey_encrypt.pubkey_encrypt_manager');
     foreach ($changed_roles as $role) {
+      $role = \Drupal\user\Entity\Role::load($role);
+
+      // We need to update all Role keys if any changed role has "administer
+      // permissions" permission in it.
+      if ($role->hasPermission("administer permissions")) {
+        // This would cause all users updated with "administer permissions"
+        // permission get complete control over all Role keys.
+        $pubkey_encrypt_manager->updateAllRoleKeys();
+
+        // Break the loop as all Role keys just got updated so moving forward
+        // is unnecessary.
+        break;
+      }
+
+      // Otherwise just update the specific Role key.
       $pubkey_encrypt_manager
-        ->updateRoleKey(\Drupal\user\Entity\Role::load($role));
+        ->updateRoleKey($role);
     }
+  }
+}
+
+/**
+ * Implements hook_user_role_update().
+ */
+function pubkey_encrypt_user_role_update(\Drupal\user\RoleInterface $role) {
+  // If a Role is given "administer permissions" permission, trigger the Role
+  // key updates.
+  if ($role->hasPermission("administer permissions") != $role->original->hasPermission("administer permissions")) {
+    $pubkey_encrypt_manager = \Drupal::service('pubkey_encrypt.pubkey_encrypt_manager');
+    // This would cause all users updated with "administer permissions"
+    // permission get complete control over all Role keys.
+    $pubkey_encrypt_manager->updateAllRoleKeys();
   }
 }

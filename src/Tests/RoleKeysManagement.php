@@ -30,6 +30,16 @@ class RoleKeysManagement extends WebTestBase {
    * Test Role keys.
    */
   public function testRoleKeys() {
+    // Create two new users.
+    $user1 = $this->drupalCreateUser(array());
+    $user2 = $this->drupalCreateUser(array());
+
+    // Create new admin user.
+    $admin_user = $this->drupalCreateUser(array(
+      'administer users',
+      'administer permissions',
+    ));
+
     // Key Repository service.
     $key_repository = \Drupal::service('key.repository');
 
@@ -40,12 +50,15 @@ class RoleKeysManagement extends WebTestBase {
     $new_role_key = $key_repository->getKey($new_role_id . "_role_key");
     $this->assertNotNull($new_role_key, "Role key gets created upon the creation of a role");
 
-    // Create two new users.
-    $user1 = $this->drupalCreateUser(array());
-    $user2 = $this->drupalCreateUser(array());
+    // Login with admin user.
+    $this->drupalLogin($admin_user);
 
-    // Login with root user.
-    $this->drupalLogin($this->rootUser);
+    // Test any user with "administer permissions" permission is able to access
+    // the Role key irrespective of the fact that he's in the role or not.
+    $role_key_value = $key_repository
+      ->getKey($new_role_id . "_role_key")
+      ->getKeyValue(TRUE);
+    $this->assertNotEqual('', $role_key_value, "Any user with permission \"administer permissions\" is able to access Role key value");
 
     // Add user1 to the newly created role.
     $edit = array();
@@ -68,6 +81,19 @@ class RoleKeysManagement extends WebTestBase {
       ->getKeyValue(TRUE);
 
     $this->assertEqual('', $role_key_value, "A user is not able to access Role key value if he is not in the role");
+
+    // Login with admin user again.
+    $this->drupalLogin($admin_user);
+    // Remove user1 from the newly created role.
+    $this->drupalPostForm("user/" . $user1->id() . "/edit", array("roles[$new_role_id]" => FALSE), t('Save'));
+
+    // Test user1 is now not able to access the Role key because he is removed
+    // from the role.
+    $this->drupalLogin($user1);
+    $role_key_value = $key_repository
+      ->getKey($new_role_id . "_role_key")
+      ->getKeyValue(TRUE);
+    $this->assertEqual('', $role_key_value, "A user is not able to access Role key value if he is removed from the role");
 
     // Remove the role.
     \Drupal::entityTypeManager()
