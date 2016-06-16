@@ -79,7 +79,7 @@ class PubkeyEncryptKeyProvider extends KeyProviderBase implements KeyPluginFormI
     // Retrieve the actual key value from the Share key of user.
     $shareKeys = $this->configuration['share_keys'];
     if (isset($shareKeys[$currentUserId])) {
-      $shareKey = base64_decode($shareKeys[$currentUserId]);
+      $shareKey = $shareKeys[$currentUserId];
 
       // The Private key of the user should be here, if the user is logged in.
       $tempstore = \Drupal::service('user.private_tempstore')
@@ -112,7 +112,7 @@ class PubkeyEncryptKeyProvider extends KeyProviderBase implements KeyPluginFormI
         $userId = $user->get('uid')->getString();
         $publicKey = $user->get('field_public_key')->getString();
         openssl_public_encrypt($key_value, $shareKey, $publicKey);
-        $shareKeys[$userId] = base64_encode($shareKey);
+        $shareKeys[$userId] = $shareKey;
       }
     }
 
