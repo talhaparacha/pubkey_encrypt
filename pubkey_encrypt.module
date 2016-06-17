@@ -79,8 +79,13 @@ function pubkey_encrypt_user_insert(\Drupal\Core\Entity\EntityInterface $entity)
  * Implements hook_user_role_delete().
  */
 function pubkey_encrypt_user_role_delete(\Drupal\user\RoleInterface $role) {
-  // Delete the Role key upon Role deletion.
   $pubkey_encrypt_manager = \Drupal::service('pubkey_encrypt.pubkey_encrypt_manager');
+
+  // Remove the corresponding Encryption Profile for the Role first.
+  $key = \Drupal::service('key.repository')->getKey($role->id() . "_role_key");
+  $pubkey_encrypt_manager->removeEncryptionProfile($key);
+
+  // Now delete the Role key.
   $pubkey_encrypt_manager->deleteRoleKey($role);
 
   // If the role had "administer permissions" permission in it, we need to
@@ -98,6 +103,10 @@ function pubkey_encrypt_user_role_insert(\Drupal\user\RoleInterface $role) {
   // Create a Role key upon Role creation.
   $pubkey_encrypt_manager = \Drupal::service('pubkey_encrypt.pubkey_encrypt_manager');
   $pubkey_encrypt_manager->generateRoleKey($role);
+
+  // Create a corresponding Encryption Profile for the Role key.
+  $key = \Drupal::service('key.repository')->getKey($role->id() . "_role_key");
+  $pubkey_encrypt_manager->generateEncryptionProfile($key);
 }
 
 /**

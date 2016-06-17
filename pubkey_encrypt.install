@@ -63,4 +63,6 @@ function pubkey_encrypt_install() {
 
   // Initialize all Role keys.
   $pubkey_encrypt_manager->initializeRoleKeys();
+  // Initialize corresponding Encryption Profiles for the Role keys.
+  $pubkey_encrypt_manager->initializeEncryptionProfiles();
 }
