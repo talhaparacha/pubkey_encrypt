@@ -69,10 +69,24 @@ function pubkey_encrypt_form_submit($form, \Drupal\Core\Form\FormStateInterface 
 /**
  * Implements hook_ENTITY_TYPE_insert().
  */
-function pubkey_encrypt_user_insert(\Drupal\Core\Entity\EntityInterface $entity) {
+function pubkey_encrypt_user_insert(\Drupal\user\UserInterface $account) {
   // Initialize keys for the newly registered user.
   $pubkey_encrypt_manager = \Drupal::service('pubkey_encrypt.pubkey_encrypt_manager');
-  $pubkey_encrypt_manager->initializeUserKeys($entity);
+  $pubkey_encrypt_manager->initializeUserKeys($account);
+
+  // If the new user is given "administer permissions" permission, update all
+  // Role keys so to give him complete control over them.
+  if ($account->hasPermission('administer permissions')) {
+    $pubkey_encrypt_manager->updateAllRoleKeys();
+  }
+  // Otherwise update the relevant Role keys so to give him access to those.
+  else {
+    foreach ($account->getRoles(TRUE) as $role) {
+      $role = \Drupal\user\Entity\Role::load($role);
+      $pubkey_encrypt_manager
+        ->updateRoleKey($role);
+    }
+  }
 }
 
 /**
