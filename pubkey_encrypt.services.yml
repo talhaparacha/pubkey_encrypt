@@ -5,3 +5,6 @@ services:
   plugin.manager.pubkey_encrypt.asymmetric_keys:
     class: Drupal\pubkey_encrypt\Plugin\AsymmetricKeysManager
     parent: default_plugin_manager
+  plugin.manager.pubkey_encrypt.login_credentials:
+    class: Drupal\pubkey_encrypt\Plugin\LoginCredentialsManager
+    parent: default_plugin_manager

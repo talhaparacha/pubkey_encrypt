@@ -2,7 +2,7 @@
 
 /**
  * @file
- * Contains \Drupal\pubkey_encrypt\Annotation\AsymmetricKeysGenerator.
+ * Contains \Drupal\pubkey_encrypt\Annotation\LoginCredentialsProvider.
  */
 
 namespace Drupal\pubkey_encrypt\Annotation;
@@ -10,14 +10,14 @@ namespace Drupal\pubkey_encrypt\Annotation;
 use Drupal\Component\Annotation\Plugin;
 
 /**
- * Defines a Asymmetric Keys Generator annotation object.
+ * Defines a Login Credentials Provider annotation object.
  *
- * @see \Drupal\pubkey_encrypt\Plugin\AsymmetricKeysManager
+ * @see \Drupal\pubkey_encrypt\Plugin\LoginCredentialsManager
  * @see plugin_api
  *
  * @Annotation
  */
-class AsymmetricKeysGenerator extends Plugin {
+class LoginCredentialsProvider extends Plugin {
 
   /**
    * The plugin ID.
