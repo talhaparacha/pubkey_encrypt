@@ -74,3 +74,111 @@ function pubkey_encrypt_user_insert(\Drupal\Core\Entity\EntityInterface $entity)
   $pubkey_encrypt_manager = \Drupal::service('pubkey_encrypt.pubkey_encrypt_manager');
   $pubkey_encrypt_manager->initializeUserKeys($entity);
 }
+
+/**
+ * Implements hook_user_role_delete().
+ */
+function pubkey_encrypt_user_role_delete(\Drupal\user\RoleInterface $role) {
+  // Delete the Role key upon Role deletion.
+  $pubkey_encrypt_manager = \Drupal::service('pubkey_encrypt.pubkey_encrypt_manager');
+  $pubkey_encrypt_manager->deleteRoleKey($role);
+
+  // If the role had "administer permissions" permission in it, we need to
+  // update all Role keys. This would cause all users updated with "administer
+  // permissions" permission get complete control over all Role keys.
+  if ($role->hasPermission("administer permissions")) {
+    $pubkey_encrypt_manager->updateAllRoleKeys();
+  }
+}
+
+/**
+ * Implements hook_user_role_insert().
+ */
+function pubkey_encrypt_user_role_insert(\Drupal\user\RoleInterface $role) {
+  // Create a Role key upon Role creation.
+  $pubkey_encrypt_manager = \Drupal::service('pubkey_encrypt.pubkey_encrypt_manager');
+  $pubkey_encrypt_manager->generateRoleKey($role);
+}
+
+/**
+ * Implements hook_user_update().
+ */
+function pubkey_encrypt_user_update(\Drupal\user\UserInterface $account) {
+  // Check if the user roles have been modified.
+  $new_roles = $account->getRoles();
+  $previous_roles = $account->original->getRoles();
+
+  if ($new_roles != $previous_roles) {
+    $added_roles = array_diff($new_roles, $previous_roles);
+    $removed_roles = array_diff($previous_roles, $new_roles);
+    $changed_roles = array_merge($added_roles, $removed_roles);
+
+    // Update Role keys.
+    $pubkey_encrypt_manager = \Drupal::service('pubkey_encrypt.pubkey_encrypt_manager');
+    foreach ($changed_roles as $role) {
+      $role = \Drupal\user\Entity\Role::load($role);
+
+      // We need to update all Role keys if any changed role has "administer
+      // permissions" permission in it.
+      if ($role->hasPermission("administer permissions")) {
+        // This would cause all users updated with "administer permissions"
+        // permission get complete control over all Role keys.
+        $pubkey_encrypt_manager->updateAllRoleKeys();
+
+        // Break the loop as all Role keys just got updated so moving forward
+        // is unnecessary.
+        break;
+      }
+
+      // Otherwise just update the specific Role key.
+      $pubkey_encrypt_manager
+        ->updateRoleKey($role);
+    }
+  }
+}
+
+/**
+ * Implements hook_user_role_update().
+ */
+function pubkey_encrypt_user_role_update(\Drupal\user\RoleInterface $role) {
+  // If a Role is given "administer permissions" permission, trigger the Role
+  // key updates.
+  if ($role->hasPermission("administer permissions") != $role->original->hasPermission("administer permissions")) {
+    $pubkey_encrypt_manager = \Drupal::service('pubkey_encrypt.pubkey_encrypt_manager');
+    // This would cause all users updated with "administer permissions"
+    // permission get complete control over all Role keys.
+    $pubkey_encrypt_manager->updateAllRoleKeys();
+  }
+}
+
+/**
+ * Implements hook_modules_installed().
+ */
+function pubkey_encrypt_modules_installed($modules) {
+  // Force logout all users after Pubkey Encrypt module installation.
+  if (in_array('pubkey_encrypt', $modules)) {
+    // Logout the current user, if any.
+    if (\Drupal::currentUser()->isAnonymous() != TRUE) {
+      user_logout();
+    }
+    // Logout all other active users on the website.
+    $connection = \Drupal::service('database');
+    $result = $connection
+      ->select('sessions', 's')
+      ->fields('s', array('uid', 'sid'))
+      ->execute();
+    while ($session = $result->fetch()) {
+      // Invoke hook_user_logout for a user before removing his session.
+      $user = \Drupal::entityTypeManager()
+        ->getStorage('user')
+        ->load($session->uid);
+      \Drupal::moduleHandler()->invokeAll('user_logout', array($user));
+
+      // Remove the user session.
+      $connection
+        ->delete('sessions')
+        ->condition('sid', $session->sid)
+        ->execute();
+    }
+  }
+}
