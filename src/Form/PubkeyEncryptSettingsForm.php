@@ -11,7 +11,7 @@ use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 
 /**
- * Form builder for the Pubkey Encrypt settings admin page.
+ * Form builder for the Pubkey Encrypt main settings form.
  */
 class PubkeyEncryptSettingsForm extends FormBase {
 

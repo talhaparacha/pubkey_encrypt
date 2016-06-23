@@ -15,7 +15,7 @@ use Drupal\pubkey_encrypt\PubkeyEncryptManager;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
- * Form builder for the Pubkey Encrypt settings admin page.
+ * Form builder for the Pubkey Encrypt initialization settings form.
  */
 class PubkeyEncryptInitializationSettingsForm extends ConfigFormBase {
 
