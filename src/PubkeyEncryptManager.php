@@ -8,6 +8,7 @@
 namespace Drupal\pubkey_encrypt;
 
 use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\key\Entity\Key;
 use Drupal\user\PrivateTempStoreFactory;
 use Drupal\user\UserInterface;
 use Drupal\user\Entity\Role;
@@ -240,6 +241,44 @@ class PubkeyEncryptManager {
   public function deleteRoleKey(Role $role) {
     \Drupal::service('key.repository')
       ->getKey($role->id() . "_role_key")
+      ->delete();
+  }
+
+  /*
+   * Initialize Encryption Profiles upon module installation.
+   */
+  public function initializeEncryptionProfiles() {
+    // Load all Role keys.
+    $keys = \Drupal::service('key.repository')
+      ->getKeysByProvider('pubkey_encrypt');
+
+    foreach ($keys as $key){
+      $this->generateEncryptionProfile($key);
+    }
+  }
+
+  /*
+   * Generate an Encryption profile for a Role key.
+   */
+  public function generateEncryptionProfile(Key $key) {
+    $values['id'] = $key->id(). '_encryption_profile';
+    $values['label'] = $key->label(). ' Encryption Profile';
+    $values['encryption_key'] = $key->id();
+    $values['encryption_method'] = 'test_encryption_method';
+
+    $this->entityTypeManager
+      ->getStorage('encryption_profile')
+      ->create($values)
+      ->save();
+  }
+
+  /*
+   * Remove the Encryption Profile for a Role key.
+   */
+  public function removeEncryptionProfile(Key $key) {
+    $this->entityTypeManager
+      ->getStorage('encryption_profile')
+      ->load($key->id(). '_encryption_profile')
       ->delete();
   }
 

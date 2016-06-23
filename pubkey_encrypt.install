@@ -63,4 +63,20 @@ function pubkey_encrypt_install() {
 
   // Initialize all Role keys.
   $pubkey_encrypt_manager->initializeRoleKeys();
+  // Initialize corresponding Encryption Profiles for the Role keys.
+  $pubkey_encrypt_manager->initializeEncryptionProfiles();
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function pubkey_encrypt_uninstall() {
+  // Delete Encryption Profiles for all Role keys.
+  $keys = \Drupal::service('key.repository')
+    ->getKeysByProvider('pubkey_encrypt');
+  foreach ($keys as $key) {
+    \Drupal::entityTypeManager()->getStorage('encryption_profile')
+      ->load($key->id(). '_encryption_profile')
+      ->delete();
+  }
 }

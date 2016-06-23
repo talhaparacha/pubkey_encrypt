@@ -69,18 +69,37 @@ function pubkey_encrypt_form_submit($form, \Drupal\Core\Form\FormStateInterface 
 /**
  * Implements hook_ENTITY_TYPE_insert().
  */
-function pubkey_encrypt_user_insert(\Drupal\Core\Entity\EntityInterface $entity) {
+function pubkey_encrypt_user_insert(\Drupal\user\UserInterface $account) {
   // Initialize keys for the newly registered user.
   $pubkey_encrypt_manager = \Drupal::service('pubkey_encrypt.pubkey_encrypt_manager');
-  $pubkey_encrypt_manager->initializeUserKeys($entity);
+  $pubkey_encrypt_manager->initializeUserKeys($account);
+
+  // If the new user is given "administer permissions" permission, update all
+  // Role keys so to give him complete control over them.
+  if ($account->hasPermission('administer permissions')) {
+    $pubkey_encrypt_manager->updateAllRoleKeys();
+  }
+  // Otherwise update the relevant Role keys so to give him access to those.
+  else {
+    foreach ($account->getRoles(TRUE) as $role) {
+      $role = \Drupal\user\Entity\Role::load($role);
+      $pubkey_encrypt_manager
+        ->updateRoleKey($role);
+    }
+  }
 }
 
 /**
  * Implements hook_user_role_delete().
  */
 function pubkey_encrypt_user_role_delete(\Drupal\user\RoleInterface $role) {
-  // Delete the Role key upon Role deletion.
   $pubkey_encrypt_manager = \Drupal::service('pubkey_encrypt.pubkey_encrypt_manager');
+
+  // Remove the corresponding Encryption Profile for the Role first.
+  $key = \Drupal::service('key.repository')->getKey($role->id() . "_role_key");
+  $pubkey_encrypt_manager->removeEncryptionProfile($key);
+
+  // Now delete the Role key.
   $pubkey_encrypt_manager->deleteRoleKey($role);
 
   // If the role had "administer permissions" permission in it, we need to
@@ -98,6 +117,10 @@ function pubkey_encrypt_user_role_insert(\Drupal\user\RoleInterface $role) {
   // Create a Role key upon Role creation.
   $pubkey_encrypt_manager = \Drupal::service('pubkey_encrypt.pubkey_encrypt_manager');
   $pubkey_encrypt_manager->generateRoleKey($role);
+
+  // Create a corresponding Encryption Profile for the Role key.
+  $key = \Drupal::service('key.repository')->getKey($role->id() . "_role_key");
+  $pubkey_encrypt_manager->generateEncryptionProfile($key);
 }
 
 /**
