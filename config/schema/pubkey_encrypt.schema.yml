@@ -8,6 +8,6 @@ pubkey_encrypt.initialization_settings:
     asymmetric_keys_generator:
       type: string
       label: 'Stores the reference to asymmetric keys generator plugin.'
-    login_credentials_proivder:
+    login_credentials_provider:
       type: string
       label: 'Stores the reference to login credentials provider plugin.'

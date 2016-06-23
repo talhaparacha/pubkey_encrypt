@@ -446,4 +446,21 @@ class PubkeyEncryptManager {
     return $loginCredentialsProvider->fetchLoginCredentials($form, $form_state);
   }
 
+  /*
+   * Fetch changed login credentials upon user form edit.
+   */
+  public function fetchChangedLoginCredentials($form, $form_state) {
+    // Do nothing if the module hasn't been initialized yet.
+    if ($this->moduleInitialized == false) {
+      return NULL;
+    }
+
+    // Delegate the task of fetching changed credentials to perspective plugin.
+    $loginCredentialsProvider = $this
+      ->loginCredentialsManager
+      ->createInstance($this->loginCredentialsProvider);
+    return $loginCredentialsProvider
+      ->fetchChangedLoginCredentials($form, $form_state);
+  }
+
 }

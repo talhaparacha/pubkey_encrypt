@@ -56,15 +56,20 @@ function pubkey_encrypt_user_login(\Drupal\user\UserInterface $account) {
  * Custom submit handler for user form.
  */
 function pubkey_encrypt_form_submit($form, \Drupal\Core\Form\FormStateInterface &$form_state) {
-  $current_pass = $form_state->getValue('current_pass');
-  $pass = $form_state->getValue('pass');
-  $user_id = $form_state->getValue('uid');
+  // Fetch changed login credentials to be used by the module.
+  $pubkey_encrypt_manager = \Drupal::service('pubkey_encrypt.pubkey_encrypt_manager');
+  $credentials = $pubkey_encrypt_manager
+    ->fetchChangedLoginCredentials($form, $form_state);
 
-  // Check if a user has requested to change password.
-  if ($current_pass != '' && $pass != '' && $current_pass != $pass) {
-    // Initialize keys for the newly registered user.
+  $old_credentials = $credentials['old'];
+  $new_credentials = $credentials['new'];
+
+  // Check if a user has requested to change credentials.
+  if ($old_credentials != '' && $new_credentials != '' && $old_credentials != $new_credentials) {
+    // Manage the credentials change.
+    $user_id = $form_state->getValue('uid');
     $pubkey_encrypt_manager = \Drupal::service('pubkey_encrypt.pubkey_encrypt_manager');
-    $pubkey_encrypt_manager->userCredentialsChanged($user_id, $current_pass, $pass);
+    $pubkey_encrypt_manager->userCredentialsChanged($user_id, $old_credentials, $new_credentials);
   }
 }
 
