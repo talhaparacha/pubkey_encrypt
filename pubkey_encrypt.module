@@ -20,14 +20,16 @@ function pubkey_encrypt_form_alter(&$form, $form_state, $form_id) {
  * Custom submit handler for login form.
  */
 function pubkey_encrypt_login_submit($form, \Drupal\Core\Form\FormStateInterface &$form_state) {
-  // Fetch inputted username and password.
-  $username = $form_state->getValue('name');
-  $password = $form_state->getValue('pass');
+  // Fetch inputted login credentials to be used by the module.
+  $pubkey_encrypt_manager = \Drupal::service('pubkey_encrypt.pubkey_encrypt_manager');
+  $credentials = $pubkey_encrypt_manager
+    ->fetchLoginCredentials($form, $form_state);
 
   // Temporarily store the plaintext password to be used for hook_user_login().
   // We cannot put this in private_tempstore as no user has been logged in yet.
+  $username = $form_state->getValue('name');
   $tempstore = \Drupal::service('user.shared_tempstore')->get('pubkey_encrypt');
-  $tempstore->set($username, $password);
+  $tempstore->set($username, $credentials);
 }
 
 /**
@@ -171,37 +173,5 @@ function pubkey_encrypt_user_role_update(\Drupal\user\RoleInterface $role) {
     // This would cause all users updated with "administer permissions"
     // permission get complete control over all Role keys.
     $pubkey_encrypt_manager->updateAllRoleKeys();
-  }
-}
-
-/**
- * Implements hook_modules_installed().
- */
-function pubkey_encrypt_modules_installed($modules) {
-  // Force logout all users after Pubkey Encrypt module installation.
-  if (in_array('pubkey_encrypt', $modules)) {
-    // Logout the current user, if any.
-    if (\Drupal::currentUser()->isAnonymous() != TRUE) {
-      user_logout();
-    }
-    // Logout all other active users on the website.
-    $connection = \Drupal::service('database');
-    $result = $connection
-      ->select('sessions', 's')
-      ->fields('s', array('uid', 'sid'))
-      ->execute();
-    while ($session = $result->fetch()) {
-      // Invoke hook_user_logout for a user before removing his session.
-      $user = \Drupal::entityTypeManager()
-        ->getStorage('user')
-        ->load($session->uid);
-      \Drupal::moduleHandler()->invokeAll('user_logout', array($user));
-
-      // Remove the user session.
-      $connection
-        ->delete('sessions')
-        ->condition('sid', $session->sid)
-        ->execute();
-    }
   }
 }

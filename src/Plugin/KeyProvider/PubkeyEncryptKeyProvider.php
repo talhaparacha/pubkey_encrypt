@@ -86,8 +86,14 @@ class PubkeyEncryptKeyProvider extends KeyProviderBase implements KeyPluginFormI
         ->get('pubkey_encrypt');
       $privateKey = $tempstore->get('private_key');
 
-      openssl_private_decrypt($shareKey, $decrypted, $privateKey);
-      $key_value = $decrypted;
+
+      // Delegate the task of encryption to perspective plugin.
+      $config = \Drupal::config('pubkey_encrypt.initialization_settings');
+      $manager = \Drupal::service('plugin.manager.pubkey_encrypt.asymmetric_keys');
+      $plugin = $manager
+        ->createInstance($config->get('asymmetric_keys_generator'));
+      $key_value = $plugin
+        ->DecryptWithPrivateKey($shareKey, $privateKey);
     }
 
     return $key_value;
@@ -111,7 +117,14 @@ class PubkeyEncryptKeyProvider extends KeyProviderBase implements KeyPluginFormI
       if ($user->hasRole($role) || $user->hasPermission('administer permissions')) {
         $userId = $user->get('uid')->getString();
         $publicKey = $user->get('field_public_key')->getString();
-        openssl_public_encrypt($key_value, $shareKey, $publicKey);
+
+        // Delegate the task of encryption to perspective plugin.
+        $config = \Drupal::config('pubkey_encrypt.initialization_settings');
+        $manager = \Drupal::service('plugin.manager.pubkey_encrypt.asymmetric_keys');
+        $plugin = $manager
+          ->createInstance($config->get('asymmetric_keys_generator'));
+        $shareKey = $plugin
+          ->encryptWithPublicKey($key_value, $publicKey);
         $shareKeys[$userId] = $shareKey;
       }
     }

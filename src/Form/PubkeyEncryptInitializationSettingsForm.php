@@ -11,6 +11,7 @@ use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\pubkey_encrypt\Plugin\AsymmetricKeysManager;
 use Drupal\pubkey_encrypt\Plugin\LoginCredentialsManager;
+use Drupal\pubkey_encrypt\PubkeyEncryptManager;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -33,14 +34,22 @@ class PubkeyEncryptInitializationSettingsForm extends ConfigFormBase {
   protected $loginCredentialsManager;
 
   /**
+   * Pubkey Encrypt manager service.
+   *
+   * @var \Drupal\pubkey_encrypt\PubkeyEncryptManager
+   */
+  protected $pubkeyEncryptManager;
+
+  /**
    * Constructs a PubkeyEncryptInitializationSettingsForm object.
    *
    * @param \Drupal\pubkey_encrypt\Plugin\AsymmetricKeysManager $asymmetric_keys_manager
    * @param \Drupal\pubkey_encrypt\Plugin\LoginCredentialsManager $login_credentials_manager
    */
-  public function __construct(AsymmetricKeysManager $asymmetric_keys_manager, LoginCredentialsManager $login_credentials_manager) {
+  public function __construct(AsymmetricKeysManager $asymmetric_keys_manager, LoginCredentialsManager $login_credentials_manager, PubkeyEncryptManager $pubkey_encrypt_manager) {
     $this->asymmetricKeysManager = $asymmetric_keys_manager;
     $this->loginCredentialsManager = $login_credentials_manager;
+    $this->pubkeyEncryptManager = $pubkey_encrypt_manager;
   }
 
   /**
@@ -49,7 +58,8 @@ class PubkeyEncryptInitializationSettingsForm extends ConfigFormBase {
   public static function create(ContainerInterface $container) {
     return new static(
       $container->get('plugin.manager.pubkey_encrypt.asymmetric_keys'),
-      $container->get('plugin.manager.pubkey_encrypt.login_credentials')
+      $container->get('plugin.manager.pubkey_encrypt.login_credentials'),
+      $container->get('pubkey_encrypt.pubkey_encrypt_manager')
     );
   }
 
@@ -150,6 +160,9 @@ class PubkeyEncryptInitializationSettingsForm extends ConfigFormBase {
       ->set('asymmetric_keys_generator', $form_state->getValue('asymmetric_keys_generator'))
       ->set('login_credentials_provider', $form_state->getValue('login_credentials_provider'))
       ->save();
+
+    // Initialize the module.
+    $this->pubkeyEncryptManager->initializeModule();
   }
 
 }
