@@ -26,4 +26,11 @@ class UserPasswords extends LoginCredentialsProviderBase {
     return $password;
   }
 
+  public function fetchChangedLoginCredentials($form, FormStateInterface &$form_state) {
+    $password['old'] = $form_state->getValue('current_pass');
+    $password['new'] = $form_state->getValue('pass');
+
+    return $password;
+  }
+
 }

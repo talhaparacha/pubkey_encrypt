@@ -42,4 +42,18 @@ interface LoginCredentialsProviderInterface extends PluginInspectionInterface {
    */
   public function fetchLoginCredentials($form, FormStateInterface &$form_state);
 
+  /**
+   * Fetch old and new credentials from the user form to be used by Pubkey
+   * Encrypt if the user credentials have changed.
+   *
+   * @param $form
+   *   Nested array of form elements that comprise the user form.
+   * @param $form_state
+   *   Current state of user login form.
+   *
+   * @return string[]
+   *   Array of strings indexed with 'old' and 'new'
+   */
+  public function fetchChangedLoginCredentials($form, FormStateInterface &$form_state);
+
 }
