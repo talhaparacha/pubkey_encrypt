@@ -7,6 +7,8 @@
 
 namespace Drupal\pubkey_encrypt\Plugin\AsymmetricKeysGenerator;
 
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Plugin\PluginFormInterface;
 use Drupal\pubkey_encrypt\Plugin\AsymmetricKeysGeneratorBase;
 
 /**
@@ -18,13 +20,13 @@ use Drupal\pubkey_encrypt\Plugin\AsymmetricKeysGeneratorBase;
  *   description = @Translation("RSA-based 4096-bit keys generated via OpenSSL using sha512 digest algorithm.")
  * )
  */
-class OpenSSLDefault extends AsymmetricKeysGeneratorBase {
+class OpenSSLDefault extends AsymmetricKeysGeneratorBase implements PluginFormInterface {
 
   public function generateAsymmetricKeys() {
     // Generate a Public/Private key pair.
     $config = array(
       "digest_alg" => "sha512",
-      "private_key_bits" => 4096,
+      "private_key_bits" => $this->getConfiguration()['key_size'],
       "private_key_type" => OPENSSL_KEYTYPE_RSA,
     );
     $res = openssl_pkey_new($config);
@@ -49,6 +51,47 @@ class OpenSSLDefault extends AsymmetricKeysGeneratorBase {
   public function decryptWithPrivateKey($encrypted_data, $private_key) {
     openssl_private_decrypt($encrypted_data, $decrypted, $private_key);
     return $decrypted;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function defaultConfiguration() {
+    return [
+      'key_size' => '2048',
+    ];
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
+    $form['key_size'] = array(
+      '#type' => 'select',
+      '#title' => t('Key size in bits'),
+      '#options' => [
+        '2048' => '2048',
+        '4096' => '4096',
+      ],
+      '#default_value' => $this->getConfiguration()['key_size'],
+      '#required' => TRUE,
+    );
+
+    return $form;
+  }
+
+  public function validateConfigurationForm(array &$form, FormStateInterface $form_state) {
+    $key_size = $form_state->getValue('key_size');
+    if ($key_size < 2048) {
+      $form_state->setErrorByName('key_size', 'Key size too small.');
+    }
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function submitConfigurationForm(array &$form, FormStateInterface $form_state) {
+    $this->setConfiguration($form_state->getValues());
   }
 
 }

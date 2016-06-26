@@ -121,6 +121,7 @@ class RoleKeysManagement extends WebTestBase {
     $config->set('module_initialized', 1)
       // Use default plugins provided by the module during initialization.
       ->set('asymmetric_keys_generator', 'openssl_default')
+      ->set('asymmetric_keys_generator_configuration', array('key_size' => '2048'))
       ->set('login_credentials_provider', 'user_passwords')
       ->save();
     \Drupal::service('pubkey_encrypt.pubkey_encrypt_manager')

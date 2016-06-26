@@ -100,9 +100,10 @@ class PubkeyEncryptManager {
     }
 
     // Delegate the task of generating asymmetric keys to perspective plugin.
+    $config = \Drupal::config('pubkey_encrypt.initialization_settings');
     $asymmetric_keys_generator = $this
       ->asymmetricKeysManager
-      ->createInstance($this->asymmetricKeysGenerator);
+      ->createInstance($this->asymmetricKeysGenerator, $config->get('asymmetric_keys_generator_configuration'));
     $keys = $asymmetric_keys_generator->generateAsymmetricKeys();
 
     $privateKey = $keys['private_key'];
