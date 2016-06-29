@@ -21,11 +21,17 @@ use Drupal\pubkey_encrypt\Plugin\LoginCredentialsProviderBase;
  */
 class UserPasswords extends LoginCredentialsProviderBase {
 
+  /**
+   * {@inheritdoc}
+   */
   public function fetchLoginCredentials($form, FormStateInterface &$form_state) {
     $password = $form_state->getValue('pass');
     return $password;
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function fetchChangedLoginCredentials($form, FormStateInterface &$form_state) {
     $password['old'] = $form_state->getValue('current_pass');
     $password['new'] = $form_state->getValue('pass');
