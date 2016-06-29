@@ -22,6 +22,9 @@ use Drupal\pubkey_encrypt\Plugin\AsymmetricKeysGeneratorBase;
  */
 class OpenSSLDefault extends AsymmetricKeysGeneratorBase implements PluginFormInterface {
 
+  /**
+   * {@inheritdoc}
+   */
   public function generateAsymmetricKeys() {
     // Generate a Public/Private key pair.
     $config = array(
@@ -43,11 +46,17 @@ class OpenSSLDefault extends AsymmetricKeysGeneratorBase implements PluginFormIn
     );
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function encryptWithPublicKey($original_data, $public_key) {
     openssl_public_encrypt($original_data, $encrypted, $public_key);
     return $encrypted;
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function decryptWithPrivateKey($encrypted_data, $private_key) {
     openssl_private_decrypt($encrypted_data, $decrypted, $private_key);
     return $decrypted;

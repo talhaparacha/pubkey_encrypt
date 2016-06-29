@@ -11,6 +11,9 @@ use Drupal\Component\Plugin\PluginBase;
 use Drupal\Component\Utility\NestedArray;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
+/**
+ * Provides a base class for AsymmetricKeysGenerator plugins.
+ */
 abstract class AsymmetricKeysGeneratorBase extends PluginBase implements AsymmetricKeysGeneratorInterface {
 
   /**
@@ -37,6 +40,9 @@ abstract class AsymmetricKeysGeneratorBase extends PluginBase implements Asymmet
     return $this->pluginDefinition['name'];
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function getDescription() {
     return $this->pluginDefinition['description'];
   }
