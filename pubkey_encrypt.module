@@ -1,6 +1,16 @@
 <?php
 
 /**
+ * @file
+ * Registers various hooks for Pubkey Encrypt to act upon.
+ */
+
+use \Drupal\Core\Form\FormStateInterface;
+use \Drupal\user\UserInterface;
+use \Drupal\user\RoleInterface;
+use \Drupal\user\Entity\Role;
+
+/**
  * Implements hook_form_alter().
  */
 function pubkey_encrypt_form_alter(&$form, $form_state, $form_id) {
@@ -19,7 +29,7 @@ function pubkey_encrypt_form_alter(&$form, $form_state, $form_id) {
 /**
  * Custom submit handler for login form.
  */
-function pubkey_encrypt_login_submit($form, \Drupal\Core\Form\FormStateInterface &$form_state) {
+function pubkey_encrypt_login_submit($form, FormStateInterface &$form_state) {
   // Fetch inputted login credentials to be used by the module.
   $pubkey_encrypt_manager = \Drupal::service('pubkey_encrypt.pubkey_encrypt_manager');
   $credentials = $pubkey_encrypt_manager
@@ -35,7 +45,7 @@ function pubkey_encrypt_login_submit($form, \Drupal\Core\Form\FormStateInterface
 /**
  * Implements hook_user_login().
  */
-function pubkey_encrypt_user_login(\Drupal\user\UserInterface $account) {
+function pubkey_encrypt_user_login(UserInterface $account) {
   // A user just logged in.
   $username = $account->get('name')->getString();
 
@@ -55,7 +65,7 @@ function pubkey_encrypt_user_login(\Drupal\user\UserInterface $account) {
 /**
  * Custom submit handler for user form.
  */
-function pubkey_encrypt_form_submit($form, \Drupal\Core\Form\FormStateInterface &$form_state) {
+function pubkey_encrypt_form_submit($form, FormStateInterface &$form_state) {
   // Fetch changed login credentials to be used by the module.
   $pubkey_encrypt_manager = \Drupal::service('pubkey_encrypt.pubkey_encrypt_manager');
   $credentials = $pubkey_encrypt_manager
@@ -76,7 +86,7 @@ function pubkey_encrypt_form_submit($form, \Drupal\Core\Form\FormStateInterface 
 /**
  * Implements hook_ENTITY_TYPE_insert().
  */
-function pubkey_encrypt_user_insert(\Drupal\user\UserInterface $account) {
+function pubkey_encrypt_user_insert(UserInterface $account) {
   // Initialize keys for the newly registered user.
   $pubkey_encrypt_manager = \Drupal::service('pubkey_encrypt.pubkey_encrypt_manager');
   $pubkey_encrypt_manager->initializeUserKeys($account);
@@ -89,7 +99,7 @@ function pubkey_encrypt_user_insert(\Drupal\user\UserInterface $account) {
   // Otherwise update the relevant Role keys so to give him access to those.
   else {
     foreach ($account->getRoles(TRUE) as $role) {
-      $role = \Drupal\user\Entity\Role::load($role);
+      $role = Role::load($role);
       $pubkey_encrypt_manager
         ->updateRoleKey($role);
     }
@@ -99,7 +109,7 @@ function pubkey_encrypt_user_insert(\Drupal\user\UserInterface $account) {
 /**
  * Implements hook_user_role_delete().
  */
-function pubkey_encrypt_user_role_delete(\Drupal\user\RoleInterface $role) {
+function pubkey_encrypt_user_role_delete(RoleInterface $role) {
   $pubkey_encrypt_manager = \Drupal::service('pubkey_encrypt.pubkey_encrypt_manager');
 
   // Remove the corresponding Encryption Profile for the Role first.
@@ -120,7 +130,7 @@ function pubkey_encrypt_user_role_delete(\Drupal\user\RoleInterface $role) {
 /**
  * Implements hook_user_role_insert().
  */
-function pubkey_encrypt_user_role_insert(\Drupal\user\RoleInterface $role) {
+function pubkey_encrypt_user_role_insert(RoleInterface $role) {
   // Create a Role key upon Role creation.
   $pubkey_encrypt_manager = \Drupal::service('pubkey_encrypt.pubkey_encrypt_manager');
   $pubkey_encrypt_manager->generateRoleKey($role);
@@ -133,7 +143,7 @@ function pubkey_encrypt_user_role_insert(\Drupal\user\RoleInterface $role) {
 /**
  * Implements hook_user_update().
  */
-function pubkey_encrypt_user_update(\Drupal\user\UserInterface $account) {
+function pubkey_encrypt_user_update(UserInterface $account) {
   // Check if the user roles have been modified.
   $new_roles = $account->getRoles();
   $previous_roles = $account->original->getRoles();
@@ -146,7 +156,7 @@ function pubkey_encrypt_user_update(\Drupal\user\UserInterface $account) {
     // Update Role keys.
     $pubkey_encrypt_manager = \Drupal::service('pubkey_encrypt.pubkey_encrypt_manager');
     foreach ($changed_roles as $role) {
-      $role = \Drupal\user\Entity\Role::load($role);
+      $role = Role::load($role);
 
       // We need to update all Role keys if any changed role has "administer
       // permissions" permission in it.
@@ -170,7 +180,7 @@ function pubkey_encrypt_user_update(\Drupal\user\UserInterface $account) {
 /**
  * Implements hook_user_role_update().
  */
-function pubkey_encrypt_user_role_update(\Drupal\user\RoleInterface $role) {
+function pubkey_encrypt_user_role_update(RoleInterface $role) {
   // If a Role is given "administer permissions" permission, trigger the Role
   // key updates.
   if ($role->hasPermission("administer permissions") != $role->original->hasPermission("administer permissions")) {

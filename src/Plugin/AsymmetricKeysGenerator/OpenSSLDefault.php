@@ -17,7 +17,7 @@ use Drupal\pubkey_encrypt\Plugin\AsymmetricKeysGeneratorBase;
  * @AsymmetricKeysGenerator(
  *   id = "openssl_default",
  *   name = @Translation("OpenSSL Default"),
- *   description = @Translation("RSA-based 4096-bit keys generated via OpenSSL using sha512 digest algorithm.")
+ *   description = @Translation("RSA-based keys generated via OpenSSL.")
  * )
  */
 class OpenSSLDefault extends AsymmetricKeysGeneratorBase implements PluginFormInterface {
@@ -28,8 +28,7 @@ class OpenSSLDefault extends AsymmetricKeysGeneratorBase implements PluginFormIn
   public function generateAsymmetricKeys() {
     // Generate a Public/Private key pair.
     $config = array(
-      "digest_alg" => "sha512",
-      "private_key_bits" => $this->getConfiguration()['key_size'],
+      "private_key_bits" => (int) $this->getConfiguration()['key_size'],
       "private_key_type" => OPENSSL_KEYTYPE_RSA,
     );
     $res = openssl_pkey_new($config);
@@ -89,6 +88,9 @@ class OpenSSLDefault extends AsymmetricKeysGeneratorBase implements PluginFormIn
     return $form;
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function validateConfigurationForm(array &$form, FormStateInterface $form_state) {
     $key_size = $form_state->getValue('key_size');
     if ($key_size < 2048) {

@@ -45,7 +45,11 @@ class PubkeyEncryptInitializationSettingsForm extends ConfigFormBase {
    * Constructs a PubkeyEncryptInitializationSettingsForm object.
    *
    * @param \Drupal\pubkey_encrypt\Plugin\AsymmetricKeysManager $asymmetric_keys_manager
+   *   Asymmetric Keys Manager plugin type.
    * @param \Drupal\pubkey_encrypt\Plugin\LoginCredentialsManager $login_credentials_manager
+   *   Login Credentials Manager plugin type.
+   * @param \Drupal\pubkey_encrypt\PubkeyEncryptManager $pubkey_encrypt_manager
+   *   Pubkey Encrypt service.
    */
   public function __construct(AsymmetricKeysManager $asymmetric_keys_manager, LoginCredentialsManager $login_credentials_manager, PubkeyEncryptManager $pubkey_encrypt_manager) {
     $this->asymmetricKeysManager = $asymmetric_keys_manager;
@@ -92,7 +96,7 @@ class PubkeyEncryptInitializationSettingsForm extends ConfigFormBase {
     // Options for Asymmetric Keys Generator plugin.
     $options = [];
     foreach ($this->asymmetricKeysManager->getDefinitions() as $plugin) {
-      $options[$plugin['id']] = (string)$plugin['name'];
+      $options[$plugin['id']] = (string) $plugin['name'];
     }
     $form['asymmetric_keys_generator'] = array(
       '#type' => 'select',
@@ -134,11 +138,10 @@ class PubkeyEncryptInitializationSettingsForm extends ConfigFormBase {
       }
     }
 
-
     // Options for Login Credentials Provider plugin.
     $options = [];
     foreach ($this->loginCredentialsManager->getDefinitions() as $plugin) {
-      $options[$plugin['id']] = (string)$plugin['name'];
+      $options[$plugin['id']] = (string) $plugin['name'];
     }
     $form['login_credentials_provider'] = array(
       '#type' => 'select',

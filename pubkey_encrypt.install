@@ -34,7 +34,6 @@ function pubkey_encrypt_requirements($phase) {
   return $requirements;
 }
 
-
 /**
  * Implements hook_install().
  */
@@ -69,7 +68,7 @@ function pubkey_encrypt_uninstall() {
     ->getKeysByProvider('pubkey_encrypt');
   foreach ($keys as $key) {
     \Drupal::entityTypeManager()->getStorage('encryption_profile')
-      ->load($key->id(). '_encryption_profile')
+      ->load($key->id() . '_encryption_profile')
       ->delete();
   }
 }
