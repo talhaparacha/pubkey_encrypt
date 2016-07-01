@@ -76,8 +76,13 @@ class PubkeyEncryptKeyProvider extends KeyProviderBase implements KeyPluginFormI
 
     $currentUserId = \Drupal::currentUser()->id();
 
-    // Retrieve the actual key value from the Share key of user.
+    // Retrieve the stored Share keys for this key.
     $shareKeys = $this->configuration['share_keys'];
+
+    // Put the Share keys in static cache for this page request.
+    drupal_static("Share keys" . $key->id(), $shareKeys);
+
+    // Retrieve the actual key value from the Share key of logged-in user.
     if (isset($shareKeys[$currentUserId])) {
       $shareKey = $shareKeys[$currentUserId];
 
@@ -92,7 +97,7 @@ class PubkeyEncryptKeyProvider extends KeyProviderBase implements KeyPluginFormI
       $plugin = $manager
         ->createInstance($config->get('asymmetric_keys_generator'), $config->get('asymmetric_keys_generator_configuration'));
       $key_value = $plugin
-        ->DecryptWithPrivateKey($shareKey, $privateKey);
+        ->decryptWithPrivateKey($shareKey, $privateKey);
     }
 
     return $key_value;
@@ -102,6 +107,10 @@ class PubkeyEncryptKeyProvider extends KeyProviderBase implements KeyPluginFormI
    * {@inheritdoc}
    */
   public function setKeyValue(KeyInterface $key, $key_value) {
+    // Retrieve all cached Share keys for this key, if made available by
+    // getKeyValue.
+    $cached_share_keys = &drupal_static("Share keys" . $key->id());
+
     $role = $this->configuration['role'];
     $shareKeys = [];
     $users = \Drupal::service('entity_type.manager')
@@ -112,9 +121,17 @@ class PubkeyEncryptKeyProvider extends KeyProviderBase implements KeyPluginFormI
       // Generate Share keys for all users from the specified role. Also
       // generate a Share key for any user with "administer_permissions"
       // permission since he should be given complete complete control over
-      // all keys..
+      // all keys.
       if ($user->hasRole($role) || $user->hasPermission('administer permissions')) {
         $userId = $user->get('uid')->getString();
+
+        // Check from the cache before generating any Share key to boost
+        // performance.
+        if (isset($cached_share_keys[$userId])) {
+          $shareKeys[$userId] = $cached_share_keys[$userId];
+          continue;
+        }
+
         $publicKey = $user->get('field_public_key')->getString();
 
         // Delegate the task of encryption to perspective plugin.
