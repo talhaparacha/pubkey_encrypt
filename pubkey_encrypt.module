@@ -113,8 +113,7 @@ function pubkey_encrypt_user_role_delete(RoleInterface $role) {
   $pubkey_encrypt_manager = \Drupal::service('pubkey_encrypt.pubkey_encrypt_manager');
 
   // Remove the corresponding Encryption Profile for the Role first.
-  $key = \Drupal::service('key.repository')->getKey($role->id() . "_role_key");
-  $pubkey_encrypt_manager->removeEncryptionProfile($key);
+  $pubkey_encrypt_manager->removeEncryptionProfile($role);
 
   // Now delete the Role key.
   $pubkey_encrypt_manager->deleteRoleKey($role);
@@ -136,8 +135,7 @@ function pubkey_encrypt_user_role_insert(RoleInterface $role) {
   $pubkey_encrypt_manager->generateRoleKey($role);
 
   // Create a corresponding Encryption Profile for the Role key.
-  $key = \Drupal::service('key.repository')->getKey($role->id() . "_role_key");
-  $pubkey_encrypt_manager->generateEncryptionProfile($key);
+  $pubkey_encrypt_manager->generateEncryptionProfile($role);
 }
 
 /**

@@ -8,7 +8,6 @@
 namespace Drupal\pubkey_encrypt;
 
 use Drupal\Core\Entity\EntityTypeManagerInterface;
-use Drupal\key\Entity\Key;
 use Drupal\pubkey_encrypt\Plugin\AsymmetricKeysManager;
 use Drupal\pubkey_encrypt\Plugin\LoginCredentialsManager;
 use Drupal\user\PrivateTempStoreFactory;
@@ -350,27 +349,27 @@ class PubkeyEncryptManager {
       return;
     }
 
-    // Load all Role keys.
-    $keys = \Drupal::service('key.repository')
-      ->getKeysByProvider('pubkey_encrypt');
-
-    foreach ($keys as $key) {
-      $this->generateEncryptionProfile($key);
+    // Generate an Encryption Profile per role.
+    foreach (Role::loadMultiple() as $role) {
+      // Since we don't have a Role key for these roles.
+      if ($role->id() != AccountInterface::ANONYMOUS_ROLE && $role->id() != AccountInterface::AUTHENTICATED_ROLE) {
+        $this->generateEncryptionProfile($role);
+      }
     }
   }
 
   /**
    * Generate an Encryption profile for a Role key.
    */
-  public function generateEncryptionProfile(Key $key) {
+  public function generateEncryptionProfile(Role $role) {
     // Do nothing if the module hasn't been initialized yet.
     if ($this->moduleInitialized == FALSE) {
       return;
     }
 
-    $values['id'] = $key->id() . '_encryption_profile';
-    $values['label'] = $key->label() . ' Encryption Profile';
-    $values['encryption_key'] = $key->id();
+    $values['id'] = $role->id() . '_role_key_encryption_profile';
+    $values['label'] = $role->label() . ' Encryption Profile';
+    $values['encryption_key'] = $role->id() . "_role_key";
     $values['encryption_method'] = 'test_encryption_method';
 
     $this->entityTypeManager
@@ -382,7 +381,7 @@ class PubkeyEncryptManager {
   /**
    * Remove the Encryption Profile for a Role key.
    */
-  public function removeEncryptionProfile(Key $key) {
+  public function removeEncryptionProfile(Role $role) {
     // Do nothing if the module hasn't been initialized yet.
     if ($this->moduleInitialized == FALSE) {
       return;
@@ -390,7 +389,7 @@ class PubkeyEncryptManager {
 
     $this->entityTypeManager
       ->getStorage('encryption_profile')
-      ->load($key->id() . '_encryption_profile')
+      ->load($role->id() . '_role_key_encryption_profile')
       ->delete();
   }
 

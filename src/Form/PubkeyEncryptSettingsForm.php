@@ -77,7 +77,7 @@ class PubkeyEncryptSettingsForm extends ConfigFormBase {
     $form['disabled_roles'] = array(
       '#type' => 'checkboxes',
       '#title' => $this->t('Disabled roles'),
-      '#description' => $this->t("Pubkey would disable its processes for all roles selected here. This would boost the performance of various operations like creation of a user etc."),
+      '#description' => $this->t("Pubkey Encrypt would disable its processes for all roles selected here. This would boost the performance of various operations like creation of a user etc."),
       '#options' => $role_options,
       '#default_value' => $config->get('disabled_roles'),
     );
