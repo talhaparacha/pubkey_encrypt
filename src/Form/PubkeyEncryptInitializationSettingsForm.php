@@ -130,9 +130,7 @@ class PubkeyEncryptInitializationSettingsForm extends ConfigFormBase {
         ->createInstance($selected_asymmetric_keys_generator);
       if ($selected_asymmetric_keys_generator instanceof PluginFormInterface) {
         $plugin_form_state = $this->createPluginFormState($form_state);
-        $form['asymmetric_keys_generator_configuration'] += $this
-          ->asymmetricKeysManager
-          ->createInstance('openssl_default')
+        $form['asymmetric_keys_generator_configuration'] += $selected_asymmetric_keys_generator
           ->buildConfigurationForm([], $form_state);
         $form_state->setValue('asymmetric_keys_generator_configuration', $plugin_form_state->getValues());
       }
