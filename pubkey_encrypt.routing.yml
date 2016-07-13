@@ -1,0 +1,15 @@
+pubkey_encrypt.settings:
+  path: '/admin/config/system/pubkey_encrypt'
+  defaults:
+    _title: 'Pubkey Encrypt settings'
+    _form: '\Drupal\pubkey_encrypt\Form\PubkeyEncryptSettingsForm'
+  requirements:
+    _permission: 'administer modules'
+
+pubkey_encrypt.initialization_settings:
+  path: '/admin/config/system/pubkey_encrypt/initialize'
+  defaults:
+    _form: '\Drupal\pubkey_encrypt\Form\PubkeyEncryptInitializationSettingsForm'
+    _title: 'Pubkey Encrypt initialization settings'
+  requirements:
+    _permission: 'administer modules'

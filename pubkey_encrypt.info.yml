@@ -3,6 +3,7 @@ description: Adds Credentials-based Public Key Encryption support.
 core: 8.x
 type: module
 package: Encryption
+configure: pubkey_encrypt.settings
 dependencies:
   - key
   - encrypt

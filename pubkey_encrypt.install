@@ -39,10 +39,6 @@ function pubkey_encrypt_requirements($phase) {
  * Implements hook_install().
  */
 function pubkey_encrypt_install() {
-  // Initialize all User keys.
-  $pubkey_encrypt_manager = \Drupal::service('pubkey_encrypt.pubkey_encrypt_manager');
-  $pubkey_encrypt_manager->initializeAllUserKeys();
-
   // Rebuild user entity form display for new fields.
   $storage = \Drupal::entityTypeManager()->getStorage('entity_form_display');
   $user_form_display = $storage->load('user.user.default');
@@ -61,10 +57,7 @@ function pubkey_encrypt_install() {
     ->removeComponent('field_private_key_protected')
     ->save();
 
-  // Initialize all Role keys.
-  $pubkey_encrypt_manager->initializeRoleKeys();
-  // Initialize corresponding Encryption Profiles for the Role keys.
-  $pubkey_encrypt_manager->initializeEncryptionProfiles();
+  drupal_set_message(t('The module Pubkey Encrypt needs to be initialized.'), 'warning');
 }
 
 /**

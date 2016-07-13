@@ -26,6 +26,16 @@ class UserKeysManagement extends WebTestBase {
   protected $profile = 'minimal';
 
   /**
+   * {@inheritdoc}
+   */
+  protected function setUp() {
+    parent::setUp();
+
+    // Have the module initialized.
+    $this->initializePubkeyEncrypt();
+  }
+
+  /**
    * Test initialization and protection of fields upon new user registration.
    */
   public function testNewUserRegistration() {
@@ -121,6 +131,19 @@ class UserKeysManagement extends WebTestBase {
 
     $this->assertNotEqual($protectedPrivateKeyNew, $protectedPrivateKeyOld, "Credentials change re-protects the Private key of a user.");
     $this->assertEqual($storedPrivateKey, $storedPrivateKeyOld, "Credentials change does not modify the Private key of a user.");
+  }
+
+  protected function initializePubkeyEncrypt() {
+    $config = \Drupal::service('config.factory')
+      ->getEditable('pubkey_encrypt.initialization_settings');
+    $config->set('module_initialized', 1)
+      // Use default plugins provided by the module during initialization.
+      ->set('asymmetric_keys_generator', 'openssl_default')
+      ->set('asymmetric_keys_generator_configuration', array('key_size' => '2048'))
+      ->set('login_credentials_provider', 'user_passwords')
+      ->save();
+    \Drupal::service('pubkey_encrypt.pubkey_encrypt_manager')
+      ->initializeModule();
   }
 
 }

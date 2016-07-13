@@ -9,6 +9,8 @@ namespace Drupal\pubkey_encrypt;
 
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\key\Entity\Key;
+use Drupal\pubkey_encrypt\Plugin\AsymmetricKeysManager;
+use Drupal\pubkey_encrypt\Plugin\LoginCredentialsManager;
 use Drupal\user\PrivateTempStoreFactory;
 use Drupal\user\UserInterface;
 use Drupal\user\Entity\Role;
@@ -21,18 +23,66 @@ class PubkeyEncryptManager {
   protected $entityTypeManager;
   protected $tempStore;
 
+  /**
+   * Status of the Pubkey Encrypt module i.e. initialized or not.
+   *
+   * @var bool
+   */
+  protected $moduleInitialized;
+
+  /**
+   * The plugin manager for asymmetric keys.
+   *
+   * @var \Drupal\pubkey_encrypt\Plugin\AsymmetricKeysManager
+   */
+  protected $asymmetricKeysManager;
+
+  /**
+   * The plugin manager for login credentials.
+   *
+   * @var \Drupal\pubkey_encrypt\Plugin\LoginCredentialsManager
+   */
+  protected $loginCredentialsManager;
+
+  /**
+   * Reference to an Asymmetric Keys Generator plugin.
+   *
+   * @var string
+   */
+  protected $asymmetricKeysGenerator;
+
+  /**
+   * Reference to a Login Credentials Provider plugin.
+   *
+   * @var string
+   */
+  protected $loginCredentialsProvider;
+
   /*
    * Constructor with dependencies injected to it.
    */
-  public function __construct(EntityTypeManagerInterface $entityTypeManager, PrivateTempStoreFactory $tempStoreFactory) {
+  public function __construct(EntityTypeManagerInterface $entityTypeManager, PrivateTempStoreFactory $tempStoreFactory, AsymmetricKeysManager $asymmetric_keys_manager, LoginCredentialsManager $login_credentials_manager) {
     $this->entityTypeManager = $entityTypeManager;
     $this->tempStore = $tempStoreFactory->get('pubkey_encrypt');
+    $this->asymmetricKeysManager = $asymmetric_keys_manager;
+    $this->loginCredentialsManager = $login_credentials_manager;
+
+    // Pull module initialization settings from configuration.
+    $config = \Drupal::config('pubkey_encrypt.initialization_settings');
+    $this->moduleInitialized = $config->get('module_initialized');
+    $this->asymmetricKeysGenerator = $config->get('asymmetric_keys_generator');
+    $this->loginCredentialsProvider = $config->get('login_credentials_provider');
   }
 
   /*
    * Initialize all users' keys.
    */
   public function initializeAllUserKeys() {
+    // Do nothing if the module hasn't been initialized yet.
+    if ($this->moduleInitialized == false) {
+      return;
+    }
+
     $users = $this->entityTypeManager->getStorage('user')->loadMultiple();
 
     foreach ($users as $user) {
@@ -44,22 +94,20 @@ class PubkeyEncryptManager {
    * Initialize a specific user's keys.
    */
   public function initializeUserKeys(UserInterface $user) {
-    // Generate a Public/Private key pair.
-    $config = array(
-      "digest_alg" => "sha512",
-      "private_key_bits" => 4096,
-      "private_key_type" => OPENSSL_KEYTYPE_RSA,
-    );
-    // Create the private and public key.
-    $res = openssl_pkey_new($config);
-    // Extract the private key.
-    openssl_pkey_export($res, $privKey, NULL, $config);
-    // Extract the public key.
-    $pubKey = openssl_pkey_get_details($res);
-    $pubKey = $pubKey["key"];
+    // Do nothing if the module hasn't been initialized yet.
+    if ($this->moduleInitialized == false) {
+      return;
+    }
 
-    $privateKey = $privKey;
-    $publicKey = $pubKey;
+    // Delegate the task of generating asymmetric keys to perspective plugin.
+    $config = \Drupal::config('pubkey_encrypt.initialization_settings');
+    $asymmetric_keys_generator = $this
+      ->asymmetricKeysManager
+      ->createInstance($this->asymmetricKeysGenerator, $config->get('asymmetric_keys_generator_configuration'));
+    $keys = $asymmetric_keys_generator->generateAsymmetricKeys();
+
+    $privateKey = $keys['private_key'];
+    $publicKey = $keys['public_key'];
 
     // Set Public/Private keys.
     $user
@@ -73,6 +121,11 @@ class PubkeyEncryptManager {
    * Protect a user keys with his credentials.
    */
   public function protectUserKeys(UserInterface $user, $credentials) {
+    // Do nothing if the module hasn't been initialized yet.
+    if ($this->moduleInitialized == false) {
+      return;
+    }
+
     // Get stored keys status.
     $isProtected = $user->get('field_private_key_protected')->getString();
 
@@ -98,6 +151,11 @@ class PubkeyEncryptManager {
    * Fetch the private key of a user in its original form.
    */
   public function getOriginalPrivateKey(UserInterface $user, $credentials) {
+    // Do nothing if the module hasn't been initialized yet.
+    if ($this->moduleInitialized == false) {
+      return NULL;
+    }
+
     // Get stored private key.
     $privateKey = $user->get('field_private_key')->getString();
 
@@ -118,6 +176,11 @@ class PubkeyEncryptManager {
    * Handle a change in user credentials.
    */
   public function userCredentialsChanged($userId, $currentCredentials, $newCredentials) {
+    // Do nothing if the module hasn't been initialized yet.
+    if ($this->moduleInitialized == false) {
+      return;
+    }
+
     $user = $this->entityTypeManager->getStorage('user')->load($userId);
 
     // Grab the original private key.
@@ -137,6 +200,11 @@ class PubkeyEncryptManager {
    * Fetch and temporarily store user's private key upon login.
    */
   public function userLoggedIn(UserInterface $user, $credentials) {
+    // Do nothing if the module hasn't been initialized yet.
+    if ($this->moduleInitialized == false) {
+      return;
+    }
+
     $isProtected = $user->get('field_private_key_protected')->getString();
 
     // If it was the first-time login of a user, protect his keys first.
@@ -154,6 +222,11 @@ class PubkeyEncryptManager {
    * Generate a Role key.
   */
   public function generateRoleKey(Role $role) {
+    // Do nothing if the module hasn't been initialized yet.
+    if ($this->moduleInitialized == false) {
+      return;
+    }
+
     $role_id = $role->id();
     $role_label = $role->label();
 
@@ -191,6 +264,11 @@ class PubkeyEncryptManager {
    * Initialize Role keys upon module installation.
    */
   public function initializeRoleKeys() {
+    // Do nothing if the module hasn't been initialized yet.
+    if ($this->moduleInitialized == false) {
+      return;
+    }
+
     // Generate a Role key per role.
     foreach (Role::loadMultiple() as $role) {
       if ($role->id() != AccountInterface::ANONYMOUS_ROLE && $role->id() != AccountInterface::AUTHENTICATED_ROLE) {
@@ -203,6 +281,11 @@ class PubkeyEncryptManager {
    * Update a Role key.
    */
   public function updateRoleKey(Role $role) {
+    // Do nothing if the module hasn't been initialized yet.
+    if ($this->moduleInitialized == false) {
+      return;
+    }
+
     // Since only users with "administer permissions" permission have control
     // over all Role keys, so only they can trigger any Role key update.
     if (\Drupal::currentUser()->hasPermission("administer permissions")) {
@@ -224,6 +307,11 @@ class PubkeyEncryptManager {
    * Update all Role keys.
    */
   public function updateAllRoleKeys() {
+    // Do nothing if the module hasn't been initialized yet.
+    if ($this->moduleInitialized == false) {
+      return;
+    }
+
     $roles = $this->entityTypeManager->getStorage('user_role')->loadMultiple();
 
     // Since we don't have a Role key for these two roles.
@@ -239,6 +327,11 @@ class PubkeyEncryptManager {
    * Delete a Role key upon role removal.
    */
   public function deleteRoleKey(Role $role) {
+    // Do nothing if the module hasn't been initialized yet.
+    if ($this->moduleInitialized == false) {
+      return;
+    }
+
     \Drupal::service('key.repository')
       ->getKey($role->id() . "_role_key")
       ->delete();
@@ -248,6 +341,11 @@ class PubkeyEncryptManager {
    * Initialize Encryption Profiles upon module installation.
    */
   public function initializeEncryptionProfiles() {
+    // Do nothing if the module hasn't been initialized yet.
+    if ($this->moduleInitialized == false) {
+      return;
+    }
+
     // Load all Role keys.
     $keys = \Drupal::service('key.repository')
       ->getKeysByProvider('pubkey_encrypt');
@@ -261,6 +359,11 @@ class PubkeyEncryptManager {
    * Generate an Encryption profile for a Role key.
    */
   public function generateEncryptionProfile(Key $key) {
+    // Do nothing if the module hasn't been initialized yet.
+    if ($this->moduleInitialized == false) {
+      return;
+    }
+
     $values['id'] = $key->id(). '_encryption_profile';
     $values['label'] = $key->label(). ' Encryption Profile';
     $values['encryption_key'] = $key->id();
@@ -276,10 +379,89 @@ class PubkeyEncryptManager {
    * Remove the Encryption Profile for a Role key.
    */
   public function removeEncryptionProfile(Key $key) {
+    // Do nothing if the module hasn't been initialized yet.
+    if ($this->moduleInitialized == false) {
+      return;
+    }
+
     $this->entityTypeManager
       ->getStorage('encryption_profile')
       ->load($key->id(). '_encryption_profile')
       ->delete();
+  }
+
+  /*
+   * Initialize the module.
+   */
+  public function initializeModule() {
+    // Pull latest initialization settings from configuration.
+    $config = \Drupal::config('pubkey_encrypt.initialization_settings');
+    $this->moduleInitialized = $config->get('module_initialized');
+    $this->asymmetricKeysGenerator = $config->get('asymmetric_keys_generator');
+    $this->loginCredentialsProvider = $config->get('login_credentials_provider');
+
+    // Do actual initialization.
+    $this->initializeAllUserKeys();
+    $this->initializeRoleKeys();
+    $this->initializeEncryptionProfiles();
+
+    // Force logout all users after module initialization.
+    // Logout the current user, if any.
+    if (\Drupal::currentUser()->isAnonymous() != TRUE) {
+      user_logout();
+    }
+    // Logout all other active users on the website.
+    $connection = \Drupal::service('database');
+    $result = $connection
+      ->select('sessions', 's')
+      ->fields('s', array('uid', 'sid'))
+      ->execute();
+    while ($session = $result->fetch()) {
+      // Invoke hook_user_logout for a user before removing his session.
+      $user = $this->entityTypeManager
+        ->getStorage('user')
+        ->load($session->uid);
+      \Drupal::moduleHandler()->invokeAll('user_logout', array($user));
+
+      // Remove the user session.
+      $connection
+        ->delete('sessions')
+        ->condition('sid', $session->sid)
+        ->execute();
+    }
+  }
+
+  /*
+   * Fetch login credentials upon user login.
+   */
+  public function fetchLoginCredentials($form, $form_state) {
+    // Do nothing if the module hasn't been initialized yet.
+    if ($this->moduleInitialized == false) {
+      return NULL;
+    }
+
+    // Delegate the task of fetching credentials to perspective plugin.
+    $loginCredentialsProvider = $this
+      ->loginCredentialsManager
+      ->createInstance($this->loginCredentialsProvider);
+    return $loginCredentialsProvider->fetchLoginCredentials($form, $form_state);
+  }
+
+  /*
+   * Fetch changed login credentials upon user form edit.
+   */
+  public function fetchChangedLoginCredentials($form, $form_state) {
+    // Do nothing if the module hasn't been initialized yet.
+    if ($this->moduleInitialized == false) {
+      return NULL;
+    }
+
+    // Delegate the task of fetching changed credentials to perspective plugin.
+    $loginCredentialsProvider = $this
+      ->loginCredentialsManager
+      ->createInstance($this->loginCredentialsProvider);
+    return $loginCredentialsProvider
+      ->fetchChangedLoginCredentials($form, $form_state);
   }
 
 }
