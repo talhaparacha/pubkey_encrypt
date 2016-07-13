@@ -1,0 +1,5 @@
+pubkey_encrypt.settings:
+  title: 'Pubkey Encrypt settings'
+  route_name: pubkey_encrypt.settings
+  description: 'Configure Pubkey Encrypt settings.'
+  parent: system.admin_config_system

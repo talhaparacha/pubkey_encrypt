@@ -7,12 +7,14 @@
 
 namespace Drupal\pubkey_encrypt\Plugin;
 
+use Drupal\Component\Plugin\ConfigurablePluginInterface;
 use Drupal\Component\Plugin\PluginInspectionInterface;
+use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 
 /**
  * Defines an interface for ice cream flavor plugins.
  */
-interface AsymmetricKeysGeneratorInterface extends PluginInspectionInterface {
+interface AsymmetricKeysGeneratorInterface extends ContainerFactoryPluginInterface, PluginInspectionInterface, ConfigurablePluginInterface {
 
   /**
    * Return name of the asymmetric keys generator plugin.
