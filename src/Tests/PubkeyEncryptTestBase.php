@@ -38,8 +38,16 @@ abstract class PubkeyEncryptTestBase extends WebTestBase {
       ->set('asymmetric_keys_generator_configuration', array('key_size' => '2048'))
       ->set('login_credentials_provider', 'user_passwords')
       ->save();
+    // During testing, we cannot call the module initialization function
+    // directly because it uses the Batch API. Hence doing the vital steps
+    // manually.
     \Drupal::service('pubkey_encrypt.pubkey_encrypt_manager')
-      ->initializeModule();
+      ->refreshReferenceVariables();
+    $users = \Drupal::entityTypeManager()->getStorage('user')->loadMultiple();
+    foreach ($users as $user) {
+      \Drupal::service('pubkey_encrypt.pubkey_encrypt_manager')
+        ->initializeUserKeys($user);
+    }
   }
 
 }

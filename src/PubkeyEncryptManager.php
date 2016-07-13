@@ -82,22 +82,6 @@ class PubkeyEncryptManager {
   }
 
   /**
-   * Initialize all users' keys.
-   */
-  public function initializeAllUserKeys() {
-    // Do nothing if the module hasn't been initialized yet.
-    if ($this->moduleInitialized == FALSE) {
-      return;
-    }
-
-    $users = $this->entityTypeManager->getStorage('user')->loadMultiple();
-
-    foreach ($users as $user) {
-      $this->initializeUserKeys($user);
-    }
-  }
-
-  /**
    * Initialize a specific user's keys.
    */
   public function initializeUserKeys(UserInterface $user) {
@@ -264,23 +248,6 @@ class PubkeyEncryptManager {
   }
 
   /**
-   * Initialize Role keys upon module installation.
-   */
-  public function initializeRoleKeys() {
-    // Do nothing if the module hasn't been initialized yet.
-    if ($this->moduleInitialized == FALSE) {
-      return;
-    }
-
-    // Generate a Role key per role.
-    foreach (Role::loadMultiple() as $role) {
-      if ($role->id() != AccountInterface::ANONYMOUS_ROLE && $role->id() != AccountInterface::AUTHENTICATED_ROLE) {
-        $this->generateRoleKey($role);
-      }
-    }
-  }
-
-  /**
    * Update a Role key.
    */
   public function updateRoleKey(Role $role) {
@@ -341,24 +308,6 @@ class PubkeyEncryptManager {
   }
 
   /**
-   * Initialize Encryption Profiles upon module installation.
-   */
-  public function initializeEncryptionProfiles() {
-    // Do nothing if the module hasn't been initialized yet.
-    if ($this->moduleInitialized == FALSE) {
-      return;
-    }
-
-    // Generate an Encryption Profile per role.
-    foreach (Role::loadMultiple() as $role) {
-      // Since we don't have a Role key for these roles.
-      if ($role->id() != AccountInterface::ANONYMOUS_ROLE && $role->id() != AccountInterface::AUTHENTICATED_ROLE) {
-        $this->generateEncryptionProfile($role);
-      }
-    }
-  }
-
-  /**
    * Generate an Encryption profile for a Role key.
    */
   public function generateEncryptionProfile(Role $role) {
@@ -397,42 +346,9 @@ class PubkeyEncryptManager {
    * Initialize the module.
    */
   public function initializeModule() {
-    // Pull latest initialization settings from configuration.
-    $config = \Drupal::config('pubkey_encrypt.initialization_settings');
-    $this->moduleInitialized = $config->get('module_initialized');
-    $this->asymmetricKeysGenerator = $config->get('asymmetric_keys_generator');
-    $this->loginCredentialsProvider = $config->get('login_credentials_provider');
-    $this->asymmetricKeysGeneratorConfiguration = $config->get('asymmetric_keys_generator_configuration');
-
-    // Do actual initialization.
-    $this->initializeAllUserKeys();
-    $this->initializeRoleKeys();
-    $this->initializeEncryptionProfiles();
-
-    // Force logout all users after module initialization.
-    // Logout the current user, if any.
-    if (\Drupal::currentUser()->isAnonymous() != TRUE) {
-      user_logout();
-    }
-    // Logout all other active users on the website.
-    $connection = \Drupal::service('database');
-    $result = $connection
-      ->select('sessions', 's')
-      ->fields('s', array('uid', 'sid'))
-      ->execute();
-    while ($session = $result->fetch()) {
-      // Invoke hook_user_logout for a user before removing his session.
-      $user = $this->entityTypeManager
-        ->getStorage('user')
-        ->load($session->uid);
-      \Drupal::moduleHandler()->invokeAll('user_logout', array($user));
-
-      // Remove the user session.
-      $connection
-        ->delete('sessions')
-        ->condition('sid', $session->sid)
-        ->execute();
-    }
+    $this->refreshReferenceVariables();
+    // Do initialization via Batch API.
+    pubkey_encrypt_initialize_module();
   }
 
   /**
@@ -466,6 +382,18 @@ class PubkeyEncryptManager {
       ->createInstance($this->loginCredentialsProvider);
     return $loginCredentialsProvider
       ->fetchChangedLoginCredentials($form, $form_state);
+  }
+
+  /**
+   * Refresh reference variables.
+   */
+  public function refreshReferenceVariables() {
+    // Pull latest module initialization settings from configuration.
+    $config = \Drupal::config('pubkey_encrypt.initialization_settings');
+    $this->moduleInitialized = $config->get('module_initialized');
+    $this->asymmetricKeysGenerator = $config->get('asymmetric_keys_generator');
+    $this->loginCredentialsProvider = $config->get('login_credentials_provider');
+    $this->asymmetricKeysGeneratorConfiguration = $config->get('asymmetric_keys_generator_configuration');
   }
 
 }

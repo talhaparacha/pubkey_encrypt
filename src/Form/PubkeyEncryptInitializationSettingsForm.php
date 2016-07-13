@@ -10,6 +10,7 @@ namespace Drupal\pubkey_encrypt\Form;
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Plugin\PluginFormInterface;
+use Drupal\Core\Url;
 use Drupal\pubkey_encrypt\Plugin\AsymmetricKeysManager;
 use Drupal\pubkey_encrypt\Plugin\LoginCredentialsManager;
 use Drupal\pubkey_encrypt\PubkeyEncryptManager;
@@ -226,6 +227,10 @@ class PubkeyEncryptInitializationSettingsForm extends ConfigFormBase {
 
     // Initialize the module.
     $this->pubkeyEncryptManager->initializeModule();
+
+    // Redirect user to homepage since he would be logged out after module
+    // initialization.
+    $form_state->setRedirectUrl(Url::fromUserInput('/'));
   }
 
   /**

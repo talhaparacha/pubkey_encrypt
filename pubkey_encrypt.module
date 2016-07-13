@@ -188,3 +188,130 @@ function pubkey_encrypt_user_role_update(RoleInterface $role) {
     $pubkey_encrypt_manager->updateAllRoleKeys();
   }
 }
+
+/**
+ * Initialize the Pubkey Encrypt module via Batch API.
+ */
+function pubkey_encrypt_initialize_module() {
+  $batch = array(
+    'title' => t('Initializing the Pubkey Encrypt module.'),
+    'operations' => array(),
+    'progress_message' => t('Completed @current out of @total operations.'),
+    'finished' => '_pubkey_encrypt_module_initialize_batch_finished',
+  );
+
+  // Add operations in the batch related to User Keys generation.
+  $users = \Drupal::entityTypeManager()->getStorage('user')->loadMultiple();
+  foreach ($users as $user) {
+    $batch['operations'][] = array(
+      '_pubkey_encrypt_initialize_user_keys',
+      array($user),
+    );
+  }
+
+  // Add operations in the batch related to Role Keys generation and Encryption
+  // Profiles generation.
+  $roles = \Drupal::entityTypeManager()->getStorage('user_role')->loadMultiple();
+  foreach ($roles as $role) {
+    if ($role->id() != UserInterface::ANONYMOUS_ROLE && $role->id() != UserInterface::AUTHENTICATED_ROLE) {
+      $batch['operations'][] = array(
+        '_pubkey_encrypt_initialize_role_key',
+        array($role),
+      );
+      $batch['operations'][] = array(
+        '_pubkey_encrypt_initialize_encryption_profile',
+        array($role),
+      );
+    }
+  }
+
+  batch_set($batch);
+  // Batch processing is handled via the Form API where this function is called.
+}
+
+/**
+ * Implements callback_batch_operation().
+ *
+ * Generate the Asymmetric keys for a user.
+ *
+ * @param \Drupal\user\UserInterface $user
+ *   The user for which keys will be created.
+ */
+function _pubkey_encrypt_initialize_user_keys(UserInterface $user, &$context) {
+  $pubkey_encrypt_manager = \Drupal::service('pubkey_encrypt.pubkey_encrypt_manager');
+  $pubkey_encrypt_manager->initializeUserKeys($user);
+
+  $context['message'] = t('Currently processing operations related to User Keys generation.');
+}
+
+/**
+ * Implements callback_batch_operation().
+ *
+ * Generate the Role key for a role.
+ *
+ * @param \Drupal\user\Entity\Role $role
+ *   The role for which a Role key will be created.
+ */
+function _pubkey_encrypt_initialize_role_key(Role $role, &$context) {
+  $pubkey_encrypt_manager = \Drupal::service('pubkey_encrypt.pubkey_encrypt_manager');
+  $pubkey_encrypt_manager->generateRoleKey($role);
+
+  $context['message'] = t('Currently processing operations related to Role Keys generation.');
+}
+
+/**
+ * Implements callback_batch_operation().
+ *
+ * Generate the Encryption Profile for a role.
+ *
+ * @param \Drupal\user\Entity\Role $role
+ *   The role for which a Role key will be created.
+ */
+function _pubkey_encrypt_initialize_encryption_profile(Role $role, &$context) {
+  $pubkey_encrypt_manager = \Drupal::service('pubkey_encrypt.pubkey_encrypt_manager');
+  $pubkey_encrypt_manager->generateEncryptionProfile($role);
+
+  $context['message'] = t('Currently processing operations related to Encryption Profiles generation.');
+}
+
+/**
+ * Implements callback_batch_finished().
+ *
+ * Finish the module initialization batch processing.
+ */
+function _pubkey_encrypt_module_initialize_batch_finished($success, $results, $operations) {
+  if ($success) {
+    // Force logout all users after module initialization.
+    // Logout the current user, if any.
+    if (\Drupal::currentUser()->isAnonymous() != TRUE) {
+      user_logout();
+    }
+    // Logout all other active users on the website.
+    $connection = \Drupal::service('database');
+    $sessions = $connection
+      ->select('sessions', 's')
+      ->fields('s', array('uid', 'sid'))
+      ->execute();
+    while ($session = $sessions->fetch()) {
+      // Invoke hook_user_logout for a user before removing his session.
+      $user = \Drupal::entityTypeManager()
+        ->getStorage('user')
+        ->load($session->uid);
+      \Drupal::moduleHandler()->invokeAll('user_logout', array($user));
+
+      // Remove the user session.
+      $connection
+        ->delete('sessions')
+        ->condition('sid', $session->sid)
+        ->execute();
+    }
+  }
+  else {
+    $error_operation = reset($operations);
+    $message = t('An error occurred while processing %error_operation with arguments: @arguments', array(
+      '%error_operation' => $error_operation[0],
+      '@arguments' => print_r($error_operation[1], TRUE),
+    ));
+    drupal_set_message($message, 'error');
+  }
+}
