@@ -142,4 +142,61 @@ class RoleKeysManagement extends PubkeyEncryptTestBase {
     $this->assertEqual('', $arbitrary_role_key_value, "A user is not able to access an arbitrary Role key's value if he does not has 'administer permissions' permission");
   }
 
+  /**
+   * Test Role keys access when the corresponding roles have been disabled.
+   */
+  public function testRoleKeysDisabledAccess() {
+    // Create a new user.
+    $user = $this->drupalCreateUser(array());
+
+    // Create a new role which will be disabled.
+    $disabled_role_id = $this->drupalCreateRole(array());
+
+    // Disable the newly created role.
+    $config = \Drupal::service('config.factory')
+      ->getEditable('pubkey_encrypt.admin_settings');
+    $config->set('disabled_roles', array($disabled_role_id))
+      ->save();
+
+    // Add the user to newly created role.
+    $this->drupalLogin($this->rootUser);
+    $edit = array();
+    $edit['roles[' . $disabled_role_id . ']'] = $disabled_role_id;
+    $this->drupalPostForm("user/" . $user->id() . "/edit", $edit, t('Save'));
+
+    // Test that the user is unable to access Role key value because the role
+    // has been disabled.
+    $this->drupalLogin($user);
+    $role_key_value = $this->keyRepository
+      ->getKey($disabled_role_id . "_role_key")
+      ->getKeyValue(TRUE);
+    $this->assertEqual('', $role_key_value, "A user from a role is not able to access the corresponding Role key value if the role has been disabled.");
+
+    // Create a new privileged user.
+    $admin = $this->drupalCreateUser(array());
+
+    // Create a new role.
+    $new_admin_role = $this->drupalCreateRole(array());
+
+    // Add user to the newly created role.
+    $this->drupalLogin($this->rootUser);
+    $edit = array();
+    $edit['roles[' . $new_admin_role . ']'] = $new_admin_role;
+    $this->drupalPostForm("user/" . $admin->id() . "/edit", $edit, t('Save'));
+
+    // Give user "administer permissions" permission by updating his role with
+    // this permission.
+    $edit = array();
+    $edit[$new_admin_role . '[administer permissions]'] = TRUE;
+    $this->drupalPostForm('admin/people/permissions', $edit, t('Save permissions'));
+
+    // Test that a privileged user is always able to access Role key value even
+    // for disabled roles.
+    $this->drupalLogin($admin);
+    $role_key_value = $this->keyRepository
+      ->getKey($disabled_role_id . "_role_key")
+      ->getKeyValue(TRUE);
+    $this->assertNotEqual('', $role_key_value, "A privileged user is able to access the corresponding Role key value even if the role has been disabled.");
+  }
+
 }
