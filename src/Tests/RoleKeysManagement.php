@@ -155,7 +155,7 @@ class RoleKeysManagement extends PubkeyEncryptTestBase {
     // Disable the newly created role.
     $config = \Drupal::service('config.factory')
       ->getEditable('pubkey_encrypt.admin_settings');
-    $config->set('disabled_roles', array($disabled_role_id))
+    $config->set('enabled_roles', array())
       ->save();
 
     // Add the user to newly created role.

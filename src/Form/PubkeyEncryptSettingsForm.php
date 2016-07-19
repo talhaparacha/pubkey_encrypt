@@ -65,8 +65,8 @@ class PubkeyEncryptSettingsForm extends ConfigFormBase {
   public function buildForm(array $form, FormStateInterface $form_state) {
     $form = parent::buildForm($form, $form_state);
 
-    $config = $this->config('pubkey_encrypt.admin_settings');
-    $disabled_roles = $config->get('disabled_roles');
+    $enabled_roles = $this->config('pubkey_encrypt.admin_settings')
+      ->get('enabled_roles');
 
     $role_options = [];
     foreach (Role::loadMultiple() as $role) {
@@ -75,15 +75,12 @@ class PubkeyEncryptSettingsForm extends ConfigFormBase {
     unset($role_options[AccountInterface::ANONYMOUS_ROLE]);
     unset($role_options[AccountInterface::AUTHENTICATED_ROLE]);
 
-    // Filter out the roles which have been enabled so far.
-    $enabled_roles = array_diff_key($role_options, array_flip($disabled_roles));
-
     $form['enabled_roles'] = array(
       '#type' => 'checkboxes',
       '#title' => $this->t('Enabled roles'),
       '#description' => $this->t("Uncheck the roles for which you want Pubkey Encrypt to disable all its processes. This could boost the performance of various operations like creation of a user etc."),
       '#options' => $role_options,
-      '#default_value' => array_keys($enabled_roles),
+      '#default_value' => $enabled_roles,
     );
 
     return $form;
@@ -93,15 +90,11 @@ class PubkeyEncryptSettingsForm extends ConfigFormBase {
    * {@inheritdoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
-    $form_enabled_roles = $form_state->getValue('enabled_roles');
-
-    // Filter out the roles to be disabled, so to store them in configuration.
-    $enabled_roles = array_filter($form_enabled_roles);
-    $disabled_roles = array_diff_key($form_enabled_roles, $enabled_roles);
+    $enabled_roles = array_filter($form_state->getValue('enabled_roles'));
 
     // Save the configuration.
     $this->config('pubkey_encrypt.admin_settings')
-      ->set('disabled_roles', array_keys($disabled_roles))
+      ->set('enabled_roles', $enabled_roles)
       ->save();
 
     parent::submitForm($form, $form_state);

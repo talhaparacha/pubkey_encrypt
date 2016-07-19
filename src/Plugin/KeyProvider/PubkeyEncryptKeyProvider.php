@@ -119,16 +119,16 @@ class PubkeyEncryptKeyProvider extends KeyProviderBase implements KeyPluginFormI
 
     // Disable roles will only store Share keys for users with "administer
     // permissions" permission.
-    $disabled_roles = \Drupal::config('pubkey_encrypt.admin_settings')
-      ->get('disabled_roles');
+    $enabled_roles = \Drupal::config('pubkey_encrypt.admin_settings')
+      ->get('enabled_roles');
 
     // Each user will have a Share key.
     foreach ($users as $user) {
-      // If the specified role is not disabled, generate Share keys for all
+      // Only if the specified role is enabled, generate Share keys for all
       // users from that role.  Also generate a Share key for any user with
       // "administer_permissions" permission since he should be given complete
       // complete control over all keys.
-      if (($user->hasRole($role) && !in_array($role, $disabled_roles)) || $user->hasPermission('administer permissions')) {
+      if (($user->hasRole($role) && in_array($role, $enabled_roles)) || $user->hasPermission('administer permissions')) {
         $userId = $user->get('uid')->getString();
 
         // Check from the cache before generating any Share key to boost

@@ -396,4 +396,22 @@ class PubkeyEncryptManager {
     $this->asymmetricKeysGeneratorConfiguration = $config->get('asymmetric_keys_generator_configuration');
   }
 
+  /**
+   * Add a role to the list of enabled roles in module settings.
+   */
+  public function enableRole(Role $role) {
+    // Do nothing if the module hasn't been initialized yet.
+    if ($this->moduleInitialized == FALSE) {
+      return NULL;
+    }
+
+    $admin_settings = \Drupal::service('config.factory')
+      ->getEditable('pubkey_encrypt.admin_settings');;
+
+    $enabled_roles = $admin_settings->get('enabled_roles');
+    $enabled_roles[$role->id()] = $role->id();
+
+    $admin_settings->set('enabled_roles', $enabled_roles)->save();
+  }
+
 }

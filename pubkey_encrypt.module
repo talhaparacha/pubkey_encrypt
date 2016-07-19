@@ -130,8 +130,12 @@ function pubkey_encrypt_user_role_delete(RoleInterface $role) {
  * Implements hook_user_role_insert().
  */
 function pubkey_encrypt_user_role_insert(RoleInterface $role) {
-  // Create a Role key upon Role creation.
   $pubkey_encrypt_manager = \Drupal::service('pubkey_encrypt.pubkey_encrypt_manager');
+
+  // Add role to the list of enabled roles.
+  $pubkey_encrypt_manager->enableRole($role);
+
+  // Create a Role key upon Role creation.
   $pubkey_encrypt_manager->generateRoleKey($role);
 
   // Create a corresponding Encryption Profile for the Role key.
@@ -254,6 +258,7 @@ function _pubkey_encrypt_initialize_user_keys(UserInterface $user, &$context) {
  */
 function _pubkey_encrypt_initialize_role_key(Role $role, &$context) {
   $pubkey_encrypt_manager = \Drupal::service('pubkey_encrypt.pubkey_encrypt_manager');
+  $pubkey_encrypt_manager->enableRole($role);
   $pubkey_encrypt_manager->generateRoleKey($role);
 
   $context['message'] = t('Currently processing operations related to Role Keys generation.');

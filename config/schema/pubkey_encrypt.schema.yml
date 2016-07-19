@@ -25,8 +25,8 @@ pubkey_encrypt.admin_settings:
   type: config_object
   label: 'Pubkey Encrypt Settings'
   mapping:
-    disabled_roles:
+    enabled_roles:
       type: sequence
-      label: 'Disabled roles.'
+      label: 'Enabled roles.'
       sequence:
         type: string
