@@ -20,7 +20,7 @@ function pubkey_encrypt_phpseclib_requirements($phase) {
   }
   else {
     $requirements['pubkey_encrypt_phpseclib']['severity'] = REQUIREMENT_ERROR;
-    $requirements['pubkey_encrypt_phpseclib']['description'] = t('Please install the PHPSecLib library via Composer. See README.txt');
+    $requirements['pubkey_encrypt_phpseclib']['description'] = t('Please install the PHPSecLib library via Composer. See the module README file');
   }
 
   return $requirements;

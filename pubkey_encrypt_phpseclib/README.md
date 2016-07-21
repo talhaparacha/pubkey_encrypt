@@ -1,5 +1,7 @@
-# Pubkey Encrypt PHPSecLib.
-Provides a PHPSecLib-based Asymmetric Keys Generator to be used with Pubkey Encrypt. 
+pubkey_encrypt_phpseclib
+=======================
+
+Provides a PHPSecLib-based Asymmetric Keys Generator to be used with Pubkey Encrypt.
 
 # Installation.
 1) Install composer.

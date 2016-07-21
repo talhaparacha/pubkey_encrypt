@@ -1,39 +1,43 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\pubkey_encrypt_phpseclib\Plugin\AsymmetricKeysGenerator\PHPSecLib.
- */
-
-namespace Drupal\pubkey_encrypt_phpseclib\Plugin\AsymmetricKeysGenerator;
+namespace Drupal\pubkey_encrypt_openssl\Plugin\AsymmetricKeysGenerator;
 
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Plugin\PluginFormInterface;
 use Drupal\pubkey_encrypt\Plugin\AsymmetricKeysGeneratorBase;
-use phpseclib\Crypt\RSA;
 
 /**
- * Provides an asymmetric keys generator based on PHPSecLib.
+ * Provides a default asymmetric keys generator based on OpenSSL.
  *
  * @AsymmetricKeysGenerator(
- *   id = "phpseclib",
- *   name = @Translation("PHPSecLib"),
- *   description = @Translation("RSA-based keys generated via PHPSecLib.")
+ *   id = "openssl_default",
+ *   name = @Translation("OpenSSL Default"),
+ *   description = @Translation("RSA-based keys generated via OpenSSL.")
  * )
  */
-class PHPSecLib extends AsymmetricKeysGeneratorBase implements PluginFormInterface {
+class OpenSSLDefault extends AsymmetricKeysGeneratorBase implements PluginFormInterface {
 
   /**
    * {@inheritdoc}
    */
   public function generateAsymmetricKeys() {
-    $rsa = new RSA();
-    $keys = $rsa->createKey($this->getConfiguration()['key_size']);
+    // Generate a Public/Private key pair.
+    $config = array(
+      "config" => "C:/xampp/apache/bin/openssl.cnf",
+      "private_key_bits" => (int) $this->getConfiguration()['key_size'],
+      "private_key_type" => OPENSSL_KEYTYPE_RSA,
+    );
+    $res = openssl_pkey_new($config);
+    // Extract the private key.
+    openssl_pkey_export($res, $private_key, NULL, $config);
+    // Extract the public key.
+    $public_key = openssl_pkey_get_details($res);
+    $public_key = $public_key["key"];
 
     // Return the keys.
     return array(
-      "public_key" => $keys['publickey'],
-      "private_key" => $keys['privatekey'],
+      "public_key" => $public_key,
+      "private_key" => $private_key,
     );
   }
 
@@ -41,9 +45,7 @@ class PHPSecLib extends AsymmetricKeysGeneratorBase implements PluginFormInterfa
    * {@inheritdoc}
    */
   public function encryptWithPublicKey($original_data, $public_key) {
-    $rsa = new RSA();
-    $rsa->loadKey($public_key);
-    $encrypted = $rsa->encrypt($original_data);
+    openssl_public_encrypt($original_data, $encrypted, $public_key);
     return $encrypted;
   }
 
@@ -51,9 +53,7 @@ class PHPSecLib extends AsymmetricKeysGeneratorBase implements PluginFormInterfa
    * {@inheritdoc}
    */
   public function decryptWithPrivateKey($encrypted_data, $private_key) {
-    $rsa = new RSA();
-    $rsa->loadKey($private_key);
-    $decrypted = $rsa->decrypt($encrypted_data);
+    openssl_private_decrypt($encrypted_data, $decrypted, $private_key);
     return $decrypted;
   }
 
@@ -62,7 +62,7 @@ class PHPSecLib extends AsymmetricKeysGeneratorBase implements PluginFormInterfa
    */
   public function defaultConfiguration() {
     return [
-      'key_size' => '1024',
+      'key_size' => '2048',
     ];
   }
 
@@ -74,8 +74,6 @@ class PHPSecLib extends AsymmetricKeysGeneratorBase implements PluginFormInterfa
       '#type' => 'select',
       '#title' => t('Key size in bits'),
       '#options' => [
-        '512' => '512',
-        '1024' => '1024',
         '2048' => '2048',
         '4096' => '4096',
       ],
@@ -91,7 +89,7 @@ class PHPSecLib extends AsymmetricKeysGeneratorBase implements PluginFormInterfa
    */
   public function validateConfigurationForm(array &$form, FormStateInterface $form_state) {
     $key_size = $form_state->getValue('key_size');
-    if ($key_size < 512) {
+    if ($key_size < 2048) {
       $form_state->setErrorByName('key_size', 'Key size too small.');
     }
   }
