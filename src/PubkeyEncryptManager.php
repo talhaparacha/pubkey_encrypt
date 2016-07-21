@@ -402,7 +402,7 @@ class PubkeyEncryptManager {
    * @param \Drupal\User\Entity\Role $role
    *   The role entity to be enabled.
    *
-   * @return NULL
+   * @return NULL|void
    *   Return NULL if the module Pubkey Encrypt has not been initialized yet.
    */
   public function enableRole(Role $role) {
