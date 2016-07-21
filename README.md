@@ -1,6 +1,8 @@
 # Pubkey Encrypt for Drupal 8
 Provides support for encrypting data with users login-credentials. The mechanism is based on ownCloud's Data Encryption Model.
 
+[![Build Status](https://travis-ci.org/talhaparacha/pubkey_encrypt.svg?branch=8.x)](https://travis-ci.org/talhaparacha/pubkey_encrypt)
+
 Pubkey Encrypt leverages the Key & Encrypt modules for integrating it's encryption mechanism into a Drupal website. Accordingly, **the module generates an Encryption Profile for each role in the website.** This allows an administrator to select the set of users whose login-credentials should be used during the encryption/decryption processes. For example, if an administrator choses the "Premium User Encryption Profile" while encrypting the data, then the login-credentials of all users from the "Premium User" role would get used. Consequently, only these users would then be able to decrypt the encrypted data.
 
 * For encrypting field data using this mechanism, Field Encrypt module should be used along with this one.
@@ -8,8 +10,11 @@ Pubkey Encrypt leverages the Key & Encrypt modules for integrating it's encrypti
 
 ## Module Documentation
 1) [See the video demonstrating a sample use-case for Pubkey Encrypt.](https://vimeo.com/174876122)
-2) [Head over to the architecture document for a detailed technical discussion on how this module works](documentation/ArchitectureDoc.pdf).
-3) [Read the user stories for step-by-step instructions on how to use this module](documentation/UserStories.pdf).
+
+2) [Read the user stories for step-by-step instructions on how to use this module](documentation/UserStories.pdf).
+
+3) [Head over to the architecture document for a detailed technical discussion on how this module works](documentation/ArchitectureDoc.pdf).
+
 
 ## Pluggable Systems
 Pubkey Encrypt leverages the Drupal 8 Plugin API to allow for extensibility for customized needs. Accordingly, it provides two plugin types:

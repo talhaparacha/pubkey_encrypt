@@ -23,7 +23,6 @@ class OpenSSLDefault extends AsymmetricKeysGeneratorBase implements PluginFormIn
   public function generateAsymmetricKeys() {
     // Generate a Public/Private key pair.
     $config = array(
-      "config" => "C:/xampp/apache/bin/openssl.cnf",
       "private_key_bits" => (int) $this->getConfiguration()['key_size'],
       "private_key_type" => OPENSSL_KEYTYPE_RSA,
     );
