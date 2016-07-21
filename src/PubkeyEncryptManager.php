@@ -398,6 +398,12 @@ class PubkeyEncryptManager {
 
   /**
    * Add a role to the list of enabled roles in module settings.
+   *
+   * @param \Drupal\User\Entity\Role $role
+   *   The role entity to be enabled.
+   *
+   * @return NULL
+   *   Return NULL if the module Pubkey Encrypt has not been initialized yet.
    */
   public function enableRole(Role $role) {
     // Do nothing if the module hasn't been initialized yet.

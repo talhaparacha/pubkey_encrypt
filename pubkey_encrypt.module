@@ -245,7 +245,7 @@ function _pubkey_encrypt_initialize_user_keys(UserInterface $user, &$context) {
   $pubkey_encrypt_manager = \Drupal::service('pubkey_encrypt.pubkey_encrypt_manager');
   $pubkey_encrypt_manager->initializeUserKeys($user);
 
-  $context['message'] = t('Currently processing operations related to User Keys generation.');
+  $context['message'] = t('Initializing User keys for @username.', array('@username' => $user->getDisplayName()));
 }
 
 /**
@@ -261,7 +261,7 @@ function _pubkey_encrypt_initialize_role_key(Role $role, &$context) {
   $pubkey_encrypt_manager->enableRole($role);
   $pubkey_encrypt_manager->generateRoleKey($role);
 
-  $context['message'] = t('Currently processing operations related to Role Keys generation.');
+  $context['message'] = t('Initializing Role key for @label role.', array('@label' => $role->label()));
 }
 
 /**
@@ -276,7 +276,7 @@ function _pubkey_encrypt_initialize_encryption_profile(Role $role, &$context) {
   $pubkey_encrypt_manager = \Drupal::service('pubkey_encrypt.pubkey_encrypt_manager');
   $pubkey_encrypt_manager->generateEncryptionProfile($role);
 
-  $context['message'] = t('Currently processing operations related to Encryption Profiles generation.');
+  $context['message'] = t('Initializing Encryption Profile for @label role.', array('@label' => $role->label()));
 }
 
 /**
@@ -288,7 +288,7 @@ function _pubkey_encrypt_module_initialize_batch_finished($success, $results, $o
   if ($success) {
     // Force logout all users after module initialization.
     // Logout the current user, if any.
-    if (\Drupal::currentUser()->isAnonymous() != TRUE) {
+    if (!\Drupal::currentUser()->isAnonymous()) {
       user_logout();
     }
     // Logout all other active users on the website.
