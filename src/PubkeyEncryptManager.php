@@ -8,7 +8,6 @@
 namespace Drupal\pubkey_encrypt;
 
 use Drupal\Core\Entity\EntityTypeManagerInterface;
-use Drupal\key\Entity\Key;
 use Drupal\pubkey_encrypt\Plugin\AsymmetricKeysManager;
 use Drupal\pubkey_encrypt\Plugin\LoginCredentialsManager;
 use Drupal\user\PrivateTempStoreFactory;
@@ -58,7 +57,14 @@ class PubkeyEncryptManager {
    */
   protected $loginCredentialsProvider;
 
-  /*
+  /**
+   * Configuration for the selected Asymmetric Keys Generator plugin.
+   *
+   * @var string[]
+   */
+  protected $asymmetricKeysGeneratorConfiguration;
+
+  /**
    * Constructor with dependencies injected to it.
    */
   public function __construct(EntityTypeManagerInterface $entityTypeManager, PrivateTempStoreFactory $tempStoreFactory, AsymmetricKeysManager $asymmetric_keys_manager, LoginCredentialsManager $login_credentials_manager) {
@@ -72,57 +78,38 @@ class PubkeyEncryptManager {
     $this->moduleInitialized = $config->get('module_initialized');
     $this->asymmetricKeysGenerator = $config->get('asymmetric_keys_generator');
     $this->loginCredentialsProvider = $config->get('login_credentials_provider');
+    $this->asymmetricKeysGeneratorConfiguration = $config->get('asymmetric_keys_generator_configuration');
   }
 
-  /*
-   * Initialize all users' keys.
-   */
-  public function initializeAllUserKeys() {
-    // Do nothing if the module hasn't been initialized yet.
-    if ($this->moduleInitialized == false) {
-      return;
-    }
-
-    $users = $this->entityTypeManager->getStorage('user')->loadMultiple();
-
-    foreach ($users as $user) {
-      $this->initializeUserKeys($user);
-    }
-  }
-
-  /*
+  /**
    * Initialize a specific user's keys.
    */
   public function initializeUserKeys(UserInterface $user) {
     // Do nothing if the module hasn't been initialized yet.
-    if ($this->moduleInitialized == false) {
+    if ($this->moduleInitialized == FALSE) {
       return;
     }
 
     // Delegate the task of generating asymmetric keys to perspective plugin.
-    $config = \Drupal::config('pubkey_encrypt.initialization_settings');
     $asymmetric_keys_generator = $this
       ->asymmetricKeysManager
-      ->createInstance($this->asymmetricKeysGenerator, $config->get('asymmetric_keys_generator_configuration'));
+      ->createInstance($this->asymmetricKeysGenerator, $this->asymmetricKeysGeneratorConfiguration);
     $keys = $asymmetric_keys_generator->generateAsymmetricKeys();
-
-    $privateKey = $keys['private_key'];
-    $publicKey = $keys['public_key'];
 
     // Set Public/Private keys.
     $user
-      ->set('field_public_key', $publicKey)
-      ->set('field_private_key', $privateKey)
+      ->set('field_public_key', $keys['public_key'])
+      ->set('field_private_key', $keys['private_key'])
       ->set('field_private_key_protected', 0)
       ->save();
   }
 
-  /*
+  /**
    * Protect a user keys with his credentials.
    */
   public function protectUserKeys(UserInterface $user, $credentials) {
     // Do nothing if the module hasn't been initialized yet.
-    if ($this->moduleInitialized == false) {
+    if ($this->moduleInitialized == FALSE) {
       return;
     }
 
@@ -147,12 +134,12 @@ class PubkeyEncryptManager {
     }
   }
 
-  /*
+  /**
    * Fetch the private key of a user in its original form.
    */
   public function getOriginalPrivateKey(UserInterface $user, $credentials) {
     // Do nothing if the module hasn't been initialized yet.
-    if ($this->moduleInitialized == false) {
+    if ($this->moduleInitialized == FALSE) {
       return NULL;
     }
 
@@ -172,12 +159,12 @@ class PubkeyEncryptManager {
     }
   }
 
-  /*
+  /**
    * Handle a change in user credentials.
    */
   public function userCredentialsChanged($userId, $currentCredentials, $newCredentials) {
     // Do nothing if the module hasn't been initialized yet.
-    if ($this->moduleInitialized == false) {
+    if ($this->moduleInitialized == FALSE) {
       return;
     }
 
@@ -196,12 +183,12 @@ class PubkeyEncryptManager {
     $this->protectUserKeys($user, $newCredentials);
   }
 
-  /*
+  /**
    * Fetch and temporarily store user's private key upon login.
    */
   public function userLoggedIn(UserInterface $user, $credentials) {
     // Do nothing if the module hasn't been initialized yet.
-    if ($this->moduleInitialized == false) {
+    if ($this->moduleInitialized == FALSE) {
       return;
     }
 
@@ -218,12 +205,12 @@ class PubkeyEncryptManager {
     $this->tempStore->set('private_key', $originalPrivateKey);
   }
 
-  /*
+  /**
    * Generate a Role key.
-  */
+   */
   public function generateRoleKey(Role $role) {
     // Do nothing if the module hasn't been initialized yet.
-    if ($this->moduleInitialized == false) {
+    if ($this->moduleInitialized == FALSE) {
       return;
     }
 
@@ -260,29 +247,12 @@ class PubkeyEncryptManager {
     $new_key->save(\Drupal::entityTypeManager()->getStorage('key'));
   }
 
-  /*
-   * Initialize Role keys upon module installation.
-   */
-  public function initializeRoleKeys() {
-    // Do nothing if the module hasn't been initialized yet.
-    if ($this->moduleInitialized == false) {
-      return;
-    }
-
-    // Generate a Role key per role.
-    foreach (Role::loadMultiple() as $role) {
-      if ($role->id() != AccountInterface::ANONYMOUS_ROLE && $role->id() != AccountInterface::AUTHENTICATED_ROLE) {
-        $this->generateRoleKey($role);
-      }
-    }
-  }
-
-  /*
+  /**
    * Update a Role key.
    */
   public function updateRoleKey(Role $role) {
     // Do nothing if the module hasn't been initialized yet.
-    if ($this->moduleInitialized == false) {
+    if ($this->moduleInitialized == FALSE) {
       return;
     }
 
@@ -303,12 +273,12 @@ class PubkeyEncryptManager {
     }
   }
 
-  /*
+  /**
    * Update all Role keys.
    */
   public function updateAllRoleKeys() {
     // Do nothing if the module hasn't been initialized yet.
-    if ($this->moduleInitialized == false) {
+    if ($this->moduleInitialized == FALSE) {
       return;
     }
 
@@ -323,12 +293,12 @@ class PubkeyEncryptManager {
     }
   }
 
-  /*
+  /**
    * Delete a Role key upon role removal.
    */
   public function deleteRoleKey(Role $role) {
     // Do nothing if the module hasn't been initialized yet.
-    if ($this->moduleInitialized == false) {
+    if ($this->moduleInitialized == FALSE) {
       return;
     }
 
@@ -337,36 +307,18 @@ class PubkeyEncryptManager {
       ->delete();
   }
 
-  /*
-   * Initialize Encryption Profiles upon module installation.
-   */
-  public function initializeEncryptionProfiles() {
-    // Do nothing if the module hasn't been initialized yet.
-    if ($this->moduleInitialized == false) {
-      return;
-    }
-
-    // Load all Role keys.
-    $keys = \Drupal::service('key.repository')
-      ->getKeysByProvider('pubkey_encrypt');
-
-    foreach ($keys as $key){
-      $this->generateEncryptionProfile($key);
-    }
-  }
-
-  /*
+  /**
    * Generate an Encryption profile for a Role key.
    */
-  public function generateEncryptionProfile(Key $key) {
+  public function generateEncryptionProfile(Role $role) {
     // Do nothing if the module hasn't been initialized yet.
-    if ($this->moduleInitialized == false) {
+    if ($this->moduleInitialized == FALSE) {
       return;
     }
 
-    $values['id'] = $key->id(). '_encryption_profile';
-    $values['label'] = $key->label(). ' Encryption Profile';
-    $values['encryption_key'] = $key->id();
+    $values['id'] = $role->id() . '_role_key_encryption_profile';
+    $values['label'] = $role->label() . ' Encryption Profile';
+    $values['encryption_key'] = $role->id() . "_role_key";
     $values['encryption_method'] = 'test_encryption_method';
 
     $this->entityTypeManager
@@ -375,68 +327,36 @@ class PubkeyEncryptManager {
       ->save();
   }
 
-  /*
+  /**
    * Remove the Encryption Profile for a Role key.
    */
-  public function removeEncryptionProfile(Key $key) {
+  public function removeEncryptionProfile(Role $role) {
     // Do nothing if the module hasn't been initialized yet.
-    if ($this->moduleInitialized == false) {
+    if ($this->moduleInitialized == FALSE) {
       return;
     }
 
     $this->entityTypeManager
       ->getStorage('encryption_profile')
-      ->load($key->id(). '_encryption_profile')
+      ->load($role->id() . '_role_key_encryption_profile')
       ->delete();
   }
 
-  /*
+  /**
    * Initialize the module.
    */
   public function initializeModule() {
-    // Pull latest initialization settings from configuration.
-    $config = \Drupal::config('pubkey_encrypt.initialization_settings');
-    $this->moduleInitialized = $config->get('module_initialized');
-    $this->asymmetricKeysGenerator = $config->get('asymmetric_keys_generator');
-    $this->loginCredentialsProvider = $config->get('login_credentials_provider');
-
-    // Do actual initialization.
-    $this->initializeAllUserKeys();
-    $this->initializeRoleKeys();
-    $this->initializeEncryptionProfiles();
-
-    // Force logout all users after module initialization.
-    // Logout the current user, if any.
-    if (\Drupal::currentUser()->isAnonymous() != TRUE) {
-      user_logout();
-    }
-    // Logout all other active users on the website.
-    $connection = \Drupal::service('database');
-    $result = $connection
-      ->select('sessions', 's')
-      ->fields('s', array('uid', 'sid'))
-      ->execute();
-    while ($session = $result->fetch()) {
-      // Invoke hook_user_logout for a user before removing his session.
-      $user = $this->entityTypeManager
-        ->getStorage('user')
-        ->load($session->uid);
-      \Drupal::moduleHandler()->invokeAll('user_logout', array($user));
-
-      // Remove the user session.
-      $connection
-        ->delete('sessions')
-        ->condition('sid', $session->sid)
-        ->execute();
-    }
+    $this->refreshReferenceVariables();
+    // Do initialization via Batch API.
+    pubkey_encrypt_initialize_module();
   }
 
-  /*
+  /**
    * Fetch login credentials upon user login.
    */
   public function fetchLoginCredentials($form, $form_state) {
     // Do nothing if the module hasn't been initialized yet.
-    if ($this->moduleInitialized == false) {
+    if ($this->moduleInitialized == FALSE) {
       return NULL;
     }
 
@@ -447,12 +367,12 @@ class PubkeyEncryptManager {
     return $loginCredentialsProvider->fetchLoginCredentials($form, $form_state);
   }
 
-  /*
+  /**
    * Fetch changed login credentials upon user form edit.
    */
   public function fetchChangedLoginCredentials($form, $form_state) {
     // Do nothing if the module hasn't been initialized yet.
-    if ($this->moduleInitialized == false) {
+    if ($this->moduleInitialized == FALSE) {
       return NULL;
     }
 
@@ -462,6 +382,42 @@ class PubkeyEncryptManager {
       ->createInstance($this->loginCredentialsProvider);
     return $loginCredentialsProvider
       ->fetchChangedLoginCredentials($form, $form_state);
+  }
+
+  /**
+   * Refresh reference variables.
+   */
+  public function refreshReferenceVariables() {
+    // Pull latest module initialization settings from configuration.
+    $config = \Drupal::config('pubkey_encrypt.initialization_settings');
+    $this->moduleInitialized = $config->get('module_initialized');
+    $this->asymmetricKeysGenerator = $config->get('asymmetric_keys_generator');
+    $this->loginCredentialsProvider = $config->get('login_credentials_provider');
+    $this->asymmetricKeysGeneratorConfiguration = $config->get('asymmetric_keys_generator_configuration');
+  }
+
+  /**
+   * Add a role to the list of enabled roles in module settings.
+   *
+   * @param \Drupal\User\Entity\Role $role
+   *   The role entity to be enabled.
+   *
+   * @return NULL|void
+   *   Return NULL if the module Pubkey Encrypt has not been initialized yet.
+   */
+  public function enableRole(Role $role) {
+    // Do nothing if the module hasn't been initialized yet.
+    if ($this->moduleInitialized == FALSE) {
+      return NULL;
+    }
+
+    $admin_settings = \Drupal::service('config.factory')
+      ->getEditable('pubkey_encrypt.admin_settings');;
+
+    $enabled_roles = $admin_settings->get('enabled_roles');
+    $enabled_roles[$role->id()] = $role->id();
+
+    $admin_settings->set('enabled_roles', $enabled_roles)->save();
   }
 
 }
