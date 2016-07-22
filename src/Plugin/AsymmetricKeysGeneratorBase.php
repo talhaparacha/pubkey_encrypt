@@ -36,6 +36,9 @@ abstract class AsymmetricKeysGeneratorBase extends PluginBase implements Asymmet
     );
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function getName() {
     return $this->pluginDefinition['name'];
   }

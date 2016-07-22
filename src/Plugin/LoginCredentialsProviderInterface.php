@@ -30,25 +30,24 @@ interface LoginCredentialsProviderInterface extends PluginInspectionInterface {
   public function getDescription();
 
   /**
-   * Fetch relevant credentials from the user login form which Pubkey Encrypt
-   * should use during Encryption/Decryption phases.
+   * Fetch relevant credentials from the user login form.
    *
-   * @param $form
+   * @param mixed $form
    *   Nested array of form elements that comprise the user login form.
-   * @param $form_state
+   * @param FormStateInterface $form_state
    *   Current state of user login form.
    *
    * @return string
+   *   The relevant login credential for a user which Pubkey Encrypt should use.
    */
   public function fetchLoginCredentials($form, FormStateInterface &$form_state);
 
   /**
-   * Fetch old and new credentials from the user form to be used by Pubkey
-   * Encrypt if the user credentials have changed.
+   * Fetch old and new credentials from the user form.
    *
-   * @param $form
+   * @param mixed $form
    *   Nested array of form elements that comprise the user form.
-   * @param $form_state
+   * @param FormStateInterface $form_state
    *   Current state of user login form.
    *
    * @return string[]

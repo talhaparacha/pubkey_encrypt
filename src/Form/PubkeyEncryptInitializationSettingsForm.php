@@ -10,6 +10,7 @@ namespace Drupal\pubkey_encrypt\Form;
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Plugin\PluginFormInterface;
+use Drupal\Core\Url;
 use Drupal\pubkey_encrypt\Plugin\AsymmetricKeysManager;
 use Drupal\pubkey_encrypt\Plugin\LoginCredentialsManager;
 use Drupal\pubkey_encrypt\PubkeyEncryptManager;
@@ -45,7 +46,11 @@ class PubkeyEncryptInitializationSettingsForm extends ConfigFormBase {
    * Constructs a PubkeyEncryptInitializationSettingsForm object.
    *
    * @param \Drupal\pubkey_encrypt\Plugin\AsymmetricKeysManager $asymmetric_keys_manager
+   *   Asymmetric Keys Manager plugin type.
    * @param \Drupal\pubkey_encrypt\Plugin\LoginCredentialsManager $login_credentials_manager
+   *   Login Credentials Manager plugin type.
+   * @param \Drupal\pubkey_encrypt\PubkeyEncryptManager $pubkey_encrypt_manager
+   *   Pubkey Encrypt service.
    */
   public function __construct(AsymmetricKeysManager $asymmetric_keys_manager, LoginCredentialsManager $login_credentials_manager, PubkeyEncryptManager $pubkey_encrypt_manager) {
     $this->asymmetricKeysManager = $asymmetric_keys_manager;
@@ -92,7 +97,7 @@ class PubkeyEncryptInitializationSettingsForm extends ConfigFormBase {
     // Options for Asymmetric Keys Generator plugin.
     $options = [];
     foreach ($this->asymmetricKeysManager->getDefinitions() as $plugin) {
-      $options[$plugin['id']] = (string)$plugin['name'];
+      $options[$plugin['id']] = (string) $plugin['name'];
     }
     $form['asymmetric_keys_generator'] = array(
       '#type' => 'select',
@@ -126,19 +131,16 @@ class PubkeyEncryptInitializationSettingsForm extends ConfigFormBase {
         ->createInstance($selected_asymmetric_keys_generator);
       if ($selected_asymmetric_keys_generator instanceof PluginFormInterface) {
         $plugin_form_state = $this->createPluginFormState($form_state);
-        $form['asymmetric_keys_generator_configuration'] += $this
-          ->asymmetricKeysManager
-          ->createInstance('openssl_default')
+        $form['asymmetric_keys_generator_configuration'] += $selected_asymmetric_keys_generator
           ->buildConfigurationForm([], $form_state);
         $form_state->setValue('asymmetric_keys_generator_configuration', $plugin_form_state->getValues());
       }
     }
 
-
     // Options for Login Credentials Provider plugin.
     $options = [];
     foreach ($this->loginCredentialsManager->getDefinitions() as $plugin) {
-      $options[$plugin['id']] = (string)$plugin['name'];
+      $options[$plugin['id']] = (string) $plugin['name'];
     }
     $form['login_credentials_provider'] = array(
       '#type' => 'select',
@@ -225,6 +227,10 @@ class PubkeyEncryptInitializationSettingsForm extends ConfigFormBase {
 
     // Initialize the module.
     $this->pubkeyEncryptManager->initializeModule();
+
+    // Redirect user to homepage since he would be logged out after module
+    // initialization.
+    $form_state->setRedirectUrl(Url::fromUserInput('/'));
   }
 
   /**

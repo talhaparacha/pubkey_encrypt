@@ -31,13 +31,12 @@ interface AsymmetricKeysGeneratorInterface extends ContainerFactoryPluginInterfa
   public function getDescription();
 
   /**
-   * Generate and return asymmetric keys in the form of an array indexed with
-   * "public_key" and "private_key" or NULL upon failure.
+   * Generate and return asymmetric keys.
    *
    * @return string[]|NULL
+   *   Array of strings indexed with 'public_key' and 'private_key'.
    */
   public function generateAsymmetricKeys();
-
 
   /**
    * Return encrypted data.
