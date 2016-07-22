@@ -1,4 +1,4 @@
-initialization_settings:
+pubkey_encrypt.initialization_settings:
   type: config_object
   label: 'Pubkey Encrypt Initialization Settings'
   mapping:
@@ -21,7 +21,7 @@ asymmetric_keys_generator.configuration.*:
   sequence:
     type: string
 
-admin_settings:
+pubkey_encrypt.admin_settings:
   type: config_object
   label: 'Pubkey Encrypt Settings'
   mapping:
