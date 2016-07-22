@@ -23,6 +23,8 @@ function pubkey_encrypt_form_alter(&$form, $form_state, $form_id) {
     case 'user_form':
       // Have this form pass through our custom handler too.
       $form['actions']['submit']['#submit'][] = 'pubkey_encrypt_form_submit';
+      // Have this form pass through our custom validator too.
+      $form['#validate'][] = 'pubkey_encrypt_user_form_validate';
   }
 }
 
@@ -80,6 +82,26 @@ function pubkey_encrypt_form_submit($form, FormStateInterface &$form_state) {
     $user_id = $form_state->getValue('uid');
     $pubkey_encrypt_manager = \Drupal::service('pubkey_encrypt.pubkey_encrypt_manager');
     $pubkey_encrypt_manager->userCredentialsChanged($user_id, $old_credentials, $new_credentials);
+  }
+}
+
+/**
+ * Custom validator for user form.
+ */
+function pubkey_encrypt_user_form_validate($form, FormStateInterface &$form_state) {
+  // Fetch changed login credentials to be used by the module.
+  $pubkey_encrypt_manager = \Drupal::service('pubkey_encrypt.pubkey_encrypt_manager');
+  $credentials = $pubkey_encrypt_manager
+    ->fetchChangedLoginCredentials($form, $form_state);
+
+  $old_credentials = $credentials['old'];
+  $new_credentials = $credentials['new'];
+
+  // Check that a user has provided both old and new credentials if he is trying
+  // to change his credentials.
+  if ($old_credentials == '' && $new_credentials != '') {
+    // Manage the credentials change.
+    $form_state->setErrorByName('', t('Pubkey Encrypt does not allow a user credentials change if existing credentials are not provided.'));
   }
 }
 
