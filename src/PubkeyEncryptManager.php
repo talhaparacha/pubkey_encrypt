@@ -412,7 +412,7 @@ class PubkeyEncryptManager {
     }
 
     $admin_settings = \Drupal::service('config.factory')
-      ->getEditable('pubkey_encrypt.admin_settings');;
+      ->getEditable('pubkey_encrypt.admin_settings');
 
     $enabled_roles = $admin_settings->get('enabled_roles');
     $enabled_roles[$role->id()] = $role->id();
