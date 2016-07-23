@@ -86,10 +86,9 @@ class PubkeyEncryptKeyProvider extends KeyProviderBase implements KeyPluginFormI
     if (isset($shareKeys[$currentUserId])) {
       $shareKey = $shareKeys[$currentUserId];
 
-      // The Private key of the user should be here, if the user is logged in.
-      $tempstore = \Drupal::service('user.private_tempstore')
-        ->get('pubkey_encrypt');
-      $privateKey = $tempstore->get('private_key');
+      // The Private key of the user will be present here because of our
+      // our event subscriber.
+      $privateKey = $_COOKIE[\Drupal::currentUser()->id() . '_private_key'];
 
       // Delegate the task of encryption to perspective plugin.
       $config = \Drupal::config('pubkey_encrypt.initialization_settings');

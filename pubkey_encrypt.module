@@ -37,31 +37,10 @@ function pubkey_encrypt_login_submit($form, FormStateInterface &$form_state) {
   $credentials = $pubkey_encrypt_manager
     ->fetchLoginCredentials($form, $form_state);
 
-  // Temporarily store the plaintext password to be used for hook_user_login().
-  // We cannot put this in private_tempstore as no user has been logged in yet.
-  $username = $form_state->getValue('name');
-  $tempstore = \Drupal::service('user.shared_tempstore')->get('pubkey_encrypt');
-  $tempstore->set($username, $credentials);
-}
-
-/**
- * Implements hook_user_login().
- */
-function pubkey_encrypt_user_login(UserInterface $account) {
-  // A user just logged in.
-  $username = $account->get('name')->getString();
-
-  // These values would be present for the user who just logged in, due to our
-  // custom_login_submit.
-  $tempstore = \Drupal::service('user.shared_tempstore')->get('pubkey_encrypt');
-  $password = $tempstore->get($username);
-
-  // Unset the temporarily stored plaintext password from the tempstore.
-  $tempstore->delete($username);
-
   // Tell the keys manager service that the user just logged in.
+  $user = user_load_by_name($form_state->getValue('name'));
   $pubkey_encrypt_manager = \Drupal::service('pubkey_encrypt.pubkey_encrypt_manager');
-  $pubkey_encrypt_manager->userLoggedIn($account, $password);
+  $pubkey_encrypt_manager->userLoggedIn($user, $credentials);
 }
 
 /**

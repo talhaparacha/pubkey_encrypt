@@ -10,7 +10,7 @@ namespace Drupal\pubkey_encrypt;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\pubkey_encrypt\Plugin\AsymmetricKeysManager;
 use Drupal\pubkey_encrypt\Plugin\LoginCredentialsManager;
-use Drupal\user\PrivateTempStoreFactory;
+use Drupal\user\SharedTempStoreFactory;
 use Drupal\user\UserInterface;
 use Drupal\user\Entity\Role;
 use Drupal\Core\Session\AccountInterface;
@@ -27,7 +27,7 @@ class PubkeyEncryptManager {
    *
    * @var bool
    */
-  protected $moduleInitialized;
+  public $moduleInitialized;
 
   /**
    * The plugin manager for asymmetric keys.
@@ -67,7 +67,7 @@ class PubkeyEncryptManager {
   /**
    * Constructor with dependencies injected to it.
    */
-  public function __construct(EntityTypeManagerInterface $entityTypeManager, PrivateTempStoreFactory $tempStoreFactory, AsymmetricKeysManager $asymmetric_keys_manager, LoginCredentialsManager $login_credentials_manager) {
+  public function __construct(EntityTypeManagerInterface $entityTypeManager, SharedTempStoreFactory $tempStoreFactory, AsymmetricKeysManager $asymmetric_keys_manager, LoginCredentialsManager $login_credentials_manager) {
     $this->entityTypeManager = $entityTypeManager;
     $this->tempStore = $tempStoreFactory->get('pubkey_encrypt');
     $this->asymmetricKeysManager = $asymmetric_keys_manager;
@@ -201,8 +201,9 @@ class PubkeyEncryptManager {
 
     $originalPrivateKey = $this->getOriginalPrivateKey($user, $credentials);
 
-    // Store private key in tempstore.
-    $this->tempStore->set('private_key', $originalPrivateKey);
+    // Store private key in tempstore till the Pubkey Encrypt event subscriber
+    // for KernelEvents::RESPONSE moves it to a cookie.
+    $this->tempStore->set($user->id() . '_private_key', $originalPrivateKey);
   }
 
   /**
