@@ -1,6 +1,6 @@
 # Pubkey Encrypt for Drupal 8
 
-[![Build Status](https://travis-ci.org/talhaparacha/pubkey_encrypt.svg?branch=8.x)](https://travis-ci.org/talhaparacha/pubkey_encrypt)
+[![Build Status](https://travis-ci.org/d8-contrib-modules/pubkey_encrypt.svg?branch=8.x)](https://travis-ci.org/d8-contrib-modules/pubkey_encrypt)
 
 Provides support for encrypting data with users login-credentials. The mechanism is based on ownCloud's Data Encryption Model.
 
@@ -44,3 +44,5 @@ Such a user won't be able to decrypt the encrypted data. In fact that's why Pubk
 Theoretically speaking, pretty secure since the data gets encrypted with users login-credentials. And the users login-credentials never get stored anywhere. So even if a hacker gets complete access to the database, still he won't be able to decrypt any encrypted data stored there because he won't know the users login-credentials.
 
 But Pubkey Encrypt directly depends on the strength of users login-credentials. So if a user has chosen a weak credential i.e a password like "12345", then the Pubkey Encrypt mechanism can be easily broken.
+
+
