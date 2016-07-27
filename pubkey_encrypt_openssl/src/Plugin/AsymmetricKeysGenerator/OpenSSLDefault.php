@@ -1,11 +1,6 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\pubkey_encrypt\Plugin\AsymmetricKeysGenerator\OpenSSLDefault.
- */
-
-namespace Drupal\pubkey_encrypt\Plugin\AsymmetricKeysGenerator;
+namespace Drupal\pubkey_encrypt_openssl\Plugin\AsymmetricKeysGenerator;
 
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Plugin\PluginFormInterface;

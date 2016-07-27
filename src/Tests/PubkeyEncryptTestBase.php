@@ -13,6 +13,8 @@ abstract class PubkeyEncryptTestBase extends WebTestBase {
     'key',
     'encrypt',
     'pubkey_encrypt',
+    'pubkey_encrypt_openssl',
+    'pubkey_encrypt_password',
   );
 
   protected $profile = 'minimal';

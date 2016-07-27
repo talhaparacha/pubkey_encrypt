@@ -1,11 +1,6 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\pubkey_encrypt\Plugin\LoginCredentialsProvider\UserPasswords.
- */
-
-namespace Drupal\pubkey_encrypt\Plugin\LoginCredentialsProvider;
+namespace Drupal\pubkey_encrypt_password\Plugin\LoginCredentialsProvider;
 
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\pubkey_encrypt\Plugin\LoginCredentialsProviderBase;
