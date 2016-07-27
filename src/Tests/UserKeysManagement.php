@@ -46,9 +46,7 @@ class UserKeysManagement extends PubkeyEncryptTestBase {
     $this->drupalLogin($user);
 
     // Fetch the temporarily stored Private key.
-    $tempstore = \Drupal::service('user.private_tempstore')
-      ->get('pubkey_encrypt');
-    $storedPrivateKey = $tempstore->get('private_key');
+    $storedPrivateKey = $_COOKIE[\Drupal::currentUser()->id() . '_private_key'];
 
     $this->assertEqual($storedPrivateKey, $privateKey, "Private key is temporarily stored upon a user login.");
   }
@@ -73,9 +71,7 @@ class UserKeysManagement extends PubkeyEncryptTestBase {
       ->getString();
 
     // Fetch the temporarily stored original Private key.
-    $tempstore = \Drupal::service('user.private_tempstore')
-      ->get('pubkey_encrypt');
-    $storedPrivateKeyOld = $tempstore->get('private_key');
+    $storedPrivateKeyOld = $_COOKIE[\Drupal::currentUser()->id() . '_private_key'];
 
     // Change user credentials.
     $edit = array();
@@ -101,7 +97,7 @@ class UserKeysManagement extends PubkeyEncryptTestBase {
       ->getString();
 
     // Fetch the temporarily stored original Private key.
-    $storedPrivateKey = $tempstore->get('private_key');
+    $storedPrivateKey = $_COOKIE[\Drupal::currentUser()->id() . '_private_key'];
 
     $this->assertNotEqual($protectedPrivateKeyNew, $protectedPrivateKeyOld, "Credentials change re-protects the Private key of a user.");
     $this->assertEqual($storedPrivateKey, $storedPrivateKeyOld, "Credentials change does not modify the Private key of a user.");

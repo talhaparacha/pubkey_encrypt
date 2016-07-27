@@ -2,6 +2,7 @@
 
 namespace Drupal\pubkey_encrypt\Tests;
 
+use Drupal\Core\Session\AccountInterface;
 use Drupal\simpletest\WebTestBase;
 
 /**
@@ -49,6 +50,27 @@ abstract class PubkeyEncryptTestBase extends WebTestBase {
     foreach ($users as $user) {
       \Drupal::service('pubkey_encrypt.pubkey_encrypt_manager')
         ->initializeUserKeys($user);
+    }
+  }
+
+  /**
+   * Custom login function to ensure the handling of cookies after a user login.
+   *
+   * @param \Drupal\Core\Session\AccountInterface $account
+   *   User object representing the user to log in.
+   */
+  protected function drupalLogin(AccountInterface $account) {
+    parent::drupalLogin($account);
+
+    // When a user logs in, his Private key gets temporarily stored in a cookie
+    // and should be present there till he logs out. Since SimpleTest by default
+    // does not provide the functionality of retaining cookies during curl
+    // requests, hence manually doing it here as it is necessary.
+    foreach ($this->cookies as $name => $value) {
+      // We're only concerned with the cookie containing Private key for a user.
+      if (preg_match('/.private_key/', $name, $matches)) {
+        $_COOKIE[$name] = urldecode($value['value']);
+      }
     }
   }
 
