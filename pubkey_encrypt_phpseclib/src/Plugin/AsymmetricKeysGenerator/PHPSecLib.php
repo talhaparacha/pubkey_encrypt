@@ -57,7 +57,7 @@ class PHPSecLib extends AsymmetricKeysGeneratorBase implements PluginFormInterfa
    */
   public function defaultConfiguration() {
     return [
-      'key_size' => '1024',
+      'key_size' => '2048',
     ];
   }
 
@@ -69,7 +69,6 @@ class PHPSecLib extends AsymmetricKeysGeneratorBase implements PluginFormInterfa
       '#type' => 'select',
       '#title' => t('Key size in bits'),
       '#options' => [
-        '1024' => '1024',
         '2048' => '2048',
         '4096' => '4096',
       ],
@@ -85,7 +84,7 @@ class PHPSecLib extends AsymmetricKeysGeneratorBase implements PluginFormInterfa
    */
   public function validateConfigurationForm(array &$form, FormStateInterface $form_state) {
     $key_size = $form_state->getValue('key_size');
-    if ($key_size < 1024) {
+    if ($key_size < 2048) {
       $form_state->setErrorByName('key_size', 'Key size too small.');
     }
   }
