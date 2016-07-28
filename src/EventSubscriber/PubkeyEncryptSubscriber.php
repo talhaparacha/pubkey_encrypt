@@ -29,7 +29,7 @@ class PubkeyEncryptSubscriber implements EventSubscriberInterface {
    * {@inheritdoc}
    */
   public static function getSubscribedEvents() {
-    $events[KernelEvents::RESPONSE][] = array('tempStoreKey');
+    $events[KernelEvents::RESPONSE][] = array('storeKeyInCookie');
     return $events;
   }
 
@@ -39,11 +39,12 @@ class PubkeyEncryptSubscriber implements EventSubscriberInterface {
    * This cookie will be later used by PubkeyEncryptKeyProvider during key
    * retrievals.
    */
-  public function tempStoreKey(FilterResponseEvent $event) {
+  public function storeKeyInCookie(FilterResponseEvent $event) {
     // Fetch the status of module.
     $module_initialized = $this->pubkeyEncryptManager->isModuleInitialized();
 
-    // Proceed only if a user is logged-in and the module has been initialized.
+    // Proceed to set a cookie only if a user is logged-in and the module has
+    // been initialized.
     if (\Drupal::currentUser()->isAuthenticated() && $module_initialized) {
       $cookies = $event->getRequest()->cookies;
       $cookie_name = \Drupal::currentUser()->id() . '_private_key';
@@ -68,6 +69,14 @@ class PubkeyEncryptSubscriber implements EventSubscriberInterface {
         else {
           user_logout();
           $event->setResponse(new RedirectResponse(Url::fromRoute('<front>')->toString()));
+        }
+      }
+    }
+    // Otherwise if no user is logged-in, clear the relevant cookies if any.
+    else {
+      foreach ($event->getRequest()->cookies->keys() as $cookie) {
+        if (preg_match('/private_key/', $cookie)) {
+          $event->getResponse()->headers->clearCookie($cookie);
         }
       }
     }
