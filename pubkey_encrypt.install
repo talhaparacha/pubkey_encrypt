@@ -6,35 +6,6 @@
  */
 
 /**
- * Implements hook_requirements().
- */
-function pubkey_encrypt_requirements($phase) {
-  $requirements = array();
-  // Check for requirements during install.
-  if ($phase == 'install') {
-    // Check if openssl is enabled.
-    if (!extension_loaded('openssl')) {
-      $requirements['pubkey_encrypt'] = array(
-        'title' => t('Pubkey Encrypt'),
-        'description' => t('Pubkey Encrypt requires OpenSSL installed on the server.'),
-        'severity' => REQUIREMENT_ERROR,
-      );
-    }
-  }
-  elseif ($phase == 'runtime') {
-    // Check if openssl is enabled.
-    if (!extension_loaded('openssl')) {
-      $requirements['pubkey_encrypt'] = array(
-        'title' => t('Pubkey Encrypt'),
-        'description' => t('Pubkey Encrypt requires OpenSSL installed on the server.'),
-        'severity' => REQUIREMENT_ERROR,
-      );
-    }
-  }
-  return $requirements;
-}
-
-/**
  * Implements hook_install().
  */
 function pubkey_encrypt_install() {
