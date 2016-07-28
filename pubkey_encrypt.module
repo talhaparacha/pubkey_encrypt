@@ -198,6 +198,9 @@ function pubkey_encrypt_user_role_update(RoleInterface $role) {
  * Initialize the Pubkey Encrypt module via Batch API.
  */
 function pubkey_encrypt_initialize_module() {
+  // Reflect in state that the initialization process has just started.
+  \Drupal::state()->set('pubkey_encrypt_initialization_in_progress', TRUE);
+
   $batch = array(
     'title' => t('Initializing the Pubkey Encrypt module.'),
     'operations' => array(),
@@ -320,4 +323,7 @@ function _pubkey_encrypt_module_initialize_batch_finished($success, $results, $o
     ));
     drupal_set_message($message, 'error');
   }
+
+  // Reflect in state that the initialization process has been completed.
+  \Drupal::state()->set('pubkey_encrypt_initialization_in_progress', FALSE);
 }

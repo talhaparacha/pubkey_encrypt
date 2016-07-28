@@ -421,4 +421,22 @@ class PubkeyEncryptManager {
     $admin_settings->set('enabled_roles', $enabled_roles)->save();
   }
 
+  /**
+   * Returns the status of Pubkey Encrypt module.
+   *
+   * @return BOOL
+   *   TRUE only if the module has finished the initialization process.
+   */
+  public function isModuleInitialized() {
+    // Ensure that the module initialization configuration has been set.
+    if ($this->moduleInitialized) {
+      // Ensure that the initialization process is not in progress.
+      if (!\Drupal::state()->get('pubkey_encrypt_initialization_in_progress')) {
+        return TRUE;
+      }
+    }
+
+    return FALSE;
+  }
+
 }

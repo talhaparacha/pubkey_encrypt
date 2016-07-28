@@ -10,5 +10,7 @@ services:
     parent: default_plugin_manager
   pubkey_encrypt.event_subscriber:
     class: Drupal\pubkey_encrypt\EventSubscriber\PubkeyEncryptSubscriber
+    arguments:
+      - @pubkey_encrypt.pubkey_encrypt_manager
     tags:
       - {name: event_subscriber}

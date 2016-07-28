@@ -3,6 +3,7 @@
 namespace Drupal\pubkey_encrypt\EventSubscriber;
 
 use Drupal\Core\Url;
+use Drupal\pubkey_encrypt\PubkeyEncryptManager;
 use Symfony\Component\HttpFoundation\Cookie;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpKernel\KernelEvents;
@@ -13,6 +14,16 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
  * Pubkey Encrypt event subscriber.
  */
 class PubkeyEncryptSubscriber implements EventSubscriberInterface {
+
+  /**
+   * Constructor for PubkeyEncryptSubscriber.
+   *
+   * @param \Drupal\pubkey_encrypt\PubkeyEncryptManager $pubkey_encrypt_manager
+   *   Pubkey Encrypt Manager service.
+   */
+  public function __construct(PubkeyEncryptManager $pubkey_encrypt_manager) {
+    $this->pubkeyEncryptManager = $pubkey_encrypt_manager;
+  }
 
   /**
    * {@inheritdoc}
@@ -29,9 +40,11 @@ class PubkeyEncryptSubscriber implements EventSubscriberInterface {
    * retrievals.
    */
   public function tempStoreKey(FilterResponseEvent $event) {
-    $pubkey_encrypt_manager = \Drupal::service('pubkey_encrypt.pubkey_encrypt_manager');
+    // Fetch the status of module.
+    $module_initialized = $this->pubkeyEncryptManager->isModuleInitialized();
+
     // Proceed only if a user is logged-in and the module has been initialized.
-    if (\Drupal::currentUser()->isAuthenticated() && $pubkey_encrypt_manager->moduleInitialized) {
+    if (\Drupal::currentUser()->isAuthenticated() && $module_initialized) {
       $cookies = $event->getRequest()->cookies;
       $cookie_name = \Drupal::currentUser()->id() . '_private_key';
       // Do nothing if the cookie already exists.
