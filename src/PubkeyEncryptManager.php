@@ -223,7 +223,7 @@ class PubkeyEncryptManager {
     $values["id"] = $role_id . "_role_key";
     $values["label"] = $role_label . " Role key";
     $values["description"] = $role_label . " Role key used by Pubkey Encrypt";
-    $values["key_type"] = "encryption";
+    $values["key_type"] = "aes_encryption";
     $values["key_type_settings"]["key_size"] = "128";
     $values["key_input"] = "none";
     $values["key_provider"] = "pubkey_encrypt";
@@ -320,7 +320,7 @@ class PubkeyEncryptManager {
     $values['id'] = $role->id() . '_role_key_encryption_profile';
     $values['label'] = $role->label() . ' Encryption Profile';
     $values['encryption_key'] = $role->id() . "_role_key";
-    $values['encryption_method'] = 'test_encryption_method';
+    $values['encryption_method'] = 'phpseclib';
 
     $this->entityTypeManager
       ->getStorage('encryption_profile')
