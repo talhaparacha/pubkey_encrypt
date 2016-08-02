@@ -13,6 +13,7 @@ abstract class PubkeyEncryptTestBase extends WebTestBase {
   public static $modules = array(
     'key',
     'encrypt',
+    'encrypt_seclib',
     'pubkey_encrypt',
     'pubkey_encrypt_openssl',
     'pubkey_encrypt_password',
@@ -24,6 +25,10 @@ abstract class PubkeyEncryptTestBase extends WebTestBase {
    * {@inheritdoc}
    */
   protected function setUp() {
+    // Do not strict check all configuration saved till issue#2777983 in Encrypt
+    // (https://www.drupal.org/node/2777983) gets fixed.
+    $this->strictConfigSchema = FALSE;
+
     parent::setUp();
 
     // Have the module initialized.
