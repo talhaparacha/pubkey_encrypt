@@ -12,4 +12,4 @@ drupal_ti_ensure_drupal
 
 # Manually clone the dependencies
 cd "$DRUPAL_TI_DRUPAL_DIR"
-composer require phpseclib/phpseclib: "^2.0.0"
+composer require phpseclib/phpseclib:"^2.0.0"
