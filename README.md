@@ -17,7 +17,7 @@ Pubkey Encrypt leverages the Key & Encrypt modules for integrating it's encrypti
 3) [Head over to the architecture document for a detailed technical discussion on how this module works](documentation/ArchitectureDoc.pdf).
 
 ## Installation & Basic Usage
-1) Install & enable this module along with all its dependencies i.e. Key, Encrypt and Encrypt PHPSecLib Encryption (Please note that Encrypt PHPSecLib Encryption needs PHPSecLib library installed via composer. See the [module README file](http://cgit.drupalcode.org/encrypt_seclib/tree/README.md) first before installing it).
+1) Install & enable this module along with all its dependencies i.e. [Key](https://www.drupal.org/project/key), [Encrypt](https://www.drupal.org/project/encrypt) and [Encrypt PHPSecLib Encryption](https://www.drupal.org/project/encrypt_seclib) (Please note that Encrypt PHPSecLib Encryption needs PHPSecLib library installed via composer. See the [module README file](http://cgit.drupalcode.org/encrypt_seclib/tree/README.md) first before installing it).
 
 2) Initialize this module from Administration >> Configuration >> System >> Pubkey Encrypt settings.
 
