@@ -7,4 +7,4 @@ configure: pubkey_encrypt.settings
 dependencies:
   - key
   - encrypt
-  - encrypt_test
+  - encrypt_seclib
