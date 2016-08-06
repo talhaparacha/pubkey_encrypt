@@ -166,6 +166,9 @@ class PubkeyEncryptInitializationSettingsForm extends ConfigFormBase {
       unset($form['actions']['submit']);
       drupal_set_message($this->t('The module has been initialized. You cannot change these settings now.'), 'warning');
     }
+    else {
+      drupal_set_message($this->t('Submission of this form will log out all users from the website.'), 'warning');
+    }
     return $form;
   }
 
