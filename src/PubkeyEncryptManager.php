@@ -3,6 +3,7 @@
 namespace Drupal\pubkey_encrypt;
 
 use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\key\KeyRepository;
 use Drupal\pubkey_encrypt\Plugin\AsymmetricKeysManager;
 use Drupal\pubkey_encrypt\Plugin\LoginCredentialsManager;
 use Drupal\user\SharedTempStoreFactory;
@@ -14,7 +15,18 @@ use Drupal\Core\Session\AccountInterface;
  * Pubkey Encrypt manager service.
  */
 class PubkeyEncryptManager {
+  /**
+   * Entity type manager service.
+   *
+   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
+   */
   protected $entityTypeManager;
+
+  /**
+   * SharedTempStore for Pubkey Encrypt.
+   *
+   * @var \Drupal\user\SharedTempStore
+   */
   protected $tempStore;
 
   /**
@@ -37,6 +49,13 @@ class PubkeyEncryptManager {
    * @var \Drupal\pubkey_encrypt\Plugin\LoginCredentialsManager
    */
   protected $loginCredentialsManager;
+
+  /**
+   * Key Repository service.
+   *
+   * @var \Drupal\key\KeyRepository;
+   */
+  protected $keyRepository;
 
   /**
    * Reference to an Asymmetric Keys Generator plugin.
@@ -62,11 +81,13 @@ class PubkeyEncryptManager {
   /**
    * Constructor with dependencies injected to it.
    */
-  public function __construct(EntityTypeManagerInterface $entityTypeManager, SharedTempStoreFactory $tempStoreFactory, AsymmetricKeysManager $asymmetric_keys_manager, LoginCredentialsManager $login_credentials_manager) {
+  public function __construct(EntityTypeManagerInterface $entityTypeManager, SharedTempStoreFactory $tempStoreFactory, AsymmetricKeysManager $asymmetric_keys_manager, LoginCredentialsManager $login_credentials_manager, KeyRepository $key_repository) {
     $this->entityTypeManager = $entityTypeManager;
     $this->tempStore = $tempStoreFactory->get('pubkey_encrypt');
     $this->asymmetricKeysManager = $asymmetric_keys_manager;
     $this->loginCredentialsManager = $login_credentials_manager;
+    $this->keyRepository = $key_repository;
+
 
     // Pull module initialization settings from configuration.
     $config = \Drupal::config('pubkey_encrypt.initialization_settings');
@@ -223,14 +244,13 @@ class PubkeyEncryptManager {
     $values["key_input"] = "none";
     $values["key_provider"] = "pubkey_encrypt";
     $values["key_provider_settings"]["role"] = $role_id;
-    \Drupal::entityTypeManager()
+    $this->entityTypeManager
       ->getStorage('key')
       ->create($values)
       ->save();
 
     // Fetch the newly generated key from key repository.
-    $new_key = \Drupal::service('key.repository')
-      ->getKey($role_id . "_role_key");
+    $new_key = $this->keyRepository->getKey($role_id . "_role_key");
 
     // Generate a value for the key.
     $new_key_value = $new_key
@@ -240,7 +260,7 @@ class PubkeyEncryptManager {
     // Save the key with new value.
     // This would cause our Key Provider to save it as per the business logic.
     $new_key->setKeyValue($new_key_value);
-    $new_key->save(\Drupal::entityTypeManager()->getStorage('key'));
+    $new_key->save($this->entityTypeManager->getStorage('key'));
   }
 
   /**
@@ -258,13 +278,12 @@ class PubkeyEncryptManager {
       // Since we don't have a Role key for "authenticated" role.
       if ($role->id() != AccountInterface::AUTHENTICATED_ROLE) {
         // Fetch the Role key.
-        $key = \Drupal::service('key.repository')
-          ->getKey($role->id() . "_role_key");
+        $key = $this->keyRepository->getKey($role->id() . "_role_key");
 
         // Re-save the key with same value.
         // This would cause our Key Provider to cater for the update.
         $key->setKeyValue($key->getKeyValue());
-        $key->save(\Drupal::entityTypeManager()->getStorage('key'));
+        $key->save($this->entityTypeManager->getStorage('key'));
       }
     }
   }
@@ -298,9 +317,7 @@ class PubkeyEncryptManager {
       return;
     }
 
-    \Drupal::service('key.repository')
-      ->getKey($role->id() . "_role_key")
-      ->delete();
+    $this->keyRepository->getKey($role->id() . "_role_key")->delete();
   }
 
   /**
