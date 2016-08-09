@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\pubkey_encrypt\PubkeyEncryptManager.
- */
-
 namespace Drupal\pubkey_encrypt;
 
 use Drupal\Core\Entity\EntityTypeManagerInterface;

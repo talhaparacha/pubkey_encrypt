@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\pubkey_encrypt\Plugin\KeyProvider\PubkeyEncryptKeyProvider.
- */
-
 namespace Drupal\pubkey_encrypt\Plugin\KeyProvider;
 
 use Drupal\Core\Form\FormStateInterface;

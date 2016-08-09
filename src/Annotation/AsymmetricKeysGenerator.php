@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\pubkey_encrypt\Annotation\AsymmetricKeysGenerator.
- */
-
 namespace Drupal\pubkey_encrypt\Annotation;
 
 use Drupal\Component\Annotation\Plugin;

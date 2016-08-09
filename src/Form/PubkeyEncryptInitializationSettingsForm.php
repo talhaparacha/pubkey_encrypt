@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\pubkey_encrypt\Form\PubkeyEncryptInitializationSettingsForm.
- */
-
 namespace Drupal\pubkey_encrypt\Form;
 
 use Drupal\Core\Form\ConfigFormBase;

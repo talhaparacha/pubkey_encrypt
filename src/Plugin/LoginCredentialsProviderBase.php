@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Provides \Drupal\pubkey_encrypt\Plugin\LoginCredentialsProviderBase.
- */
-
 namespace Drupal\pubkey_encrypt\Plugin;
 
 use Drupal\Component\Plugin\PluginBase;
