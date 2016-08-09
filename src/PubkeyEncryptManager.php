@@ -11,7 +11,7 @@ use Drupal\user\Entity\Role;
 use Drupal\Core\Session\AccountInterface;
 
 /**
- * Handles users' Public/Private key pairs.
+ * Pubkey Encrypt manager service.
  */
 class PubkeyEncryptManager {
   protected $entityTypeManager;
