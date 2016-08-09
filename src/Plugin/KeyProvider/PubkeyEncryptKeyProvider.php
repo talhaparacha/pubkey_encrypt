@@ -94,8 +94,7 @@ class PubkeyEncryptKeyProvider extends KeyProviderBase implements KeyPluginFormI
         ->decryptWithPrivateKey($shareKey, $privateKey);
     }
     else {
-      $message = $this->t("Pubkey Encrypt error: Failed to retrieve key value for '@keylabel' key entity because the logged-in user is not privileged to do so.", array('@keylabel' => $key->label()));
-      drupal_set_message($message, 'error');
+      drupal_set_message($this->t('You are attempting to access some encrypted data, but you are not a member of a role with access. Therefore, this data will not be displayed.'), 'warning');
     }
 
     return $key_value;
