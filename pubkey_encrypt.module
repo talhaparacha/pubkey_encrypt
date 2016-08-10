@@ -327,5 +327,5 @@ function _pubkey_encrypt_module_initialize_batch_finished($success, $results, $o
   }
 
   // Reflect in state that the initialization process has been completed.
-  \Drupal::state()->set('pubkey_encrypt_initialization_in_progress', FALSE);
+  \Drupal::state()->delete('pubkey_encrypt_initialization_in_progress');
 }

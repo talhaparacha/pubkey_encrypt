@@ -16,6 +16,13 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 class PubkeyEncryptSubscriber implements EventSubscriberInterface {
 
   /**
+   * Pubkey Encrypt manager service.
+   *
+   * @var \Drupal\pubkey_encrypt\PubkeyEncryptManager
+   */
+  protected $pubkeyEncryptManager;
+
+  /**
    * Constructor for PubkeyEncryptSubscriber.
    *
    * @param \Drupal\pubkey_encrypt\PubkeyEncryptManager $pubkey_encrypt_manager

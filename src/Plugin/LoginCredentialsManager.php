@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\pubkey_encrypt\Plugin\LoginCredentialsManager.
- */
-
 namespace Drupal\pubkey_encrypt\Plugin;
 
 use Drupal\Core\Plugin\DefaultPluginManager;
