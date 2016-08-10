@@ -1,6 +1,8 @@
+> This branch contains all the work done by me, Muhammad Talha Paracha, as a Google Summer of Code 2016 participant. I also wrote weekly blog posts during the 3-month coding period, and they can can be tracked [here](http://www.talhaparacha.com/gsoc2016/). Please head over to the [official project page for Pubkey Encrypt](https://www.drupal.org/project/pubkey_encrypt) if you want to see its latest status.
+
 # Pubkey Encrypt for Drupal 8
 
-[![Build Status](https://travis-ci.org/d8-contrib-modules/pubkey_encrypt.svg?branch=8.x)](https://travis-ci.org/d8-contrib-modules/pubkey_encrypt)
+[![Build Status](https://travis-ci.org/talhaparacha/pubkey_encrypt.svg?branch=gsoc2016)](https://travis-ci.org/d8-contrib-modules/pubkey_encrypt)
 
 Provides support for encrypting data with users' login credentials. The mechanism is based on ownCloud's Data Encryption Model.
 
